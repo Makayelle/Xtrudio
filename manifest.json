@@ -1,0 +1,19 @@
+{
+  "name": "Xtrudio — Stock & Coût Bambu Lab",
+  "short_name": "Xtrudio",
+  "description": "Gestion de stock de filaments Bambu Lab et simulateur de coût d'impression 3D pour H2S + AMS 2 Pro.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0c0d14",
+  "theme_color": "#0c0d14",
+  "lang": "fr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
