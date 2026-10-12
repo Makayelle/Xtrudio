@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xtrudio — Stock & Coût Bambu Lab</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:#0c0d14; --s1:#15161f; --s2:#1c1d29; --s3:#242534;
+  --border:#2a2c3d; --border2:#3a3d54;
+  --accent:#c8f03a; --a2:#ff9d4d; --a3:#3af0c8; --a4:#b06bff; --danger:#ff5470;
+  --text:#eef0f5; --muted:#8688a0; --muted2:#565873;
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-pill:999px;
+  --glow-accent:0 0 24px rgba(200,240,58,.25);
+  --glow-accent-soft:0 0 14px rgba(200,240,58,.18);
+  --glow-a2:0 0 24px rgba(255,157,77,.25);
+  --glow-a3:0 0 24px rgba(58,240,200,.25);
+  --glow-a4:0 0 24px rgba(176,107,255,.25);
+  --a5:#9698b8; --glow-a5:0 0 20px rgba(150,152,184,.2);
+  --glow-danger:0 0 24px rgba(255,84,112,.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(200,240,58,.025)1px,transparent 1px),linear-gradient(90deg,rgba(200,240,58,.025)1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(560px circle at 8% 0%, rgba(200,240,58,.09), transparent 60%),
+    radial-gradient(520px circle at 95% 15%, rgba(176,107,255,.08), transparent 60%),
+    radial-gradient(600px circle at 50% 100%, rgba(58,240,200,.06), transparent 60%);}
+
+/* ─── NAV ─────────────────────────────────────── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(12,13,20,.82);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 0 rgba(200,240,58,.06), 0 8px 30px rgba(0,0,0,.35);
+  display:flex;align-items:center;gap:0;height:56px;}
+.nav-logo{display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid var(--border);height:100%;}
+.nav-logo svg{width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(200,240,58,.5));}
+.nav-logo span{font-size:.95rem;font-weight:800;letter-spacing:-.01em;}
+.nav-logo span em{color:var(--accent);font-style:normal;text-shadow:0 0 16px rgba(200,240,58,.6);}
+.nav-tabs{display:flex;height:100%;}
+.nav-tab{display:flex;align-items:center;gap:8px;padding:0 22px;
+  font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;border-right:1px solid var(--border);
+  border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
+.nav-tab:hover{color:var(--text);background:var(--s2);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);
+  background:linear-gradient(180deg,rgba(200,240,58,.08),transparent);
+  text-shadow:0 0 12px rgba(200,240,58,.4);}
+.nav-tab .tab-icon{font-size:14px;}
+.nav-right{margin-left:auto;padding:0 16px;display:flex;align-items:center;gap:10px;}
+.btn-print{background:var(--accent);border:none;color:#0c0d14;
+  font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;
+  padding:8px 18px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;
+  border-radius:var(--r-pill);
+  box-shadow:var(--glow-accent-soft);
+  transition:all .2s;}
+.btn-print:hover{box-shadow:var(--glow-accent);transform:translateY(-1px);}
+
+/* ─── PAGES ─────────────────────────────────────── */
+.page{display:none;position:relative;z-index:1;padding-top:68px;}
+.page.active{display:block;}
+
+/* ─── STOCK PAGE ─────────────────────────────────────── */
+#page-stock{padding-bottom:80px;}
+.stock-inner{max-width:1200px;margin:0 auto;padding:24px 20px;}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+.ph-title{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;}
+.ph-title span{color:var(--accent);text-shadow:0 0 18px rgba(200,240,58,.4);}
+.ph-sub{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px;}
+
+/* TOP BAR */
+.stock-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.chip{background:var(--s1);border:1px solid var(--border);color:var(--muted);
+  font-family:'Space Mono',monospace;font-size:.6rem;padding:7px 15px;cursor:pointer;
+  letter-spacing:.06em;text-transform:uppercase;transition:all .2s;border-radius:var(--r-pill);}
+.chip:hover{border-color:var(--border2);color:var(--text);}
+.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(200,240,58,.08);box-shadow:var(--glow-accent-soft);}
+.chip.a2.active{border-color:var(--a2);color:var(--a2);background:rgba(255,157,77,.08);box-shadow:var(--glow-a2);}
+.chip.a3.active{border-color:var(--a3);color:var(--a3);background:rgba(58,240,200,.08);box-shadow:var(--glow-a3);}
+.chip.a4.active{border-color:var(--a4);color:var(--a4);background:rgba(176,107,255,.08);box-shadow:var(--glow-a4);}
+.chip.a5.active{border-color:var(--a5);color:var(--a5);background:rgba(150,152,184,.1);box-shadow:var(--glow-a5);}
+
+.view-toggle{display:flex;margin-left:auto;gap:4px;background:var(--s1);padding:3px;border-radius:var(--r-pill);border:1px solid var(--border);}
+.vt-btn{background:transparent;border:none;color:var(--muted);
+  font-family:'Space Mono',monospace;font-size:.6rem;padding:6px 13px;cursor:pointer;transition:all .2s;border-radius:var(--r-pill);}
+.vt-btn.active{background:var(--accent);color:#0c0d14;font-weight:700;box-shadow:var(--glow-accent-soft);}
+
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-vis{display:flex;gap:6px;background:var(--s1);padding:3px;border-radius:var(--r-pill);border:1px solid var(--border);}
+.vis-btn{background:transparent;border:none;color:var(--muted);
+  font-family:'Space Mono',monospace;font-size:.58rem;padding:5px 12px;cursor:pointer;transition:all .2s;border-radius:var(--r-pill);}
+.vis-btn.active{background:var(--a2);color:#0c0d14;font-weight:700;box-shadow:var(--glow-a2);}
+.search-wrap{flex:1;min-width:160px;max-width:260px;}
+.search-wrap input{width:100%;background:var(--s1);border:1px solid var(--border);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:.7rem;padding:8px 14px;outline:none;transition:all .2s;border-radius:var(--r-pill);}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:var(--glow-accent-soft);}
+.search-wrap input::placeholder{color:var(--muted2);}
+
+/* SPOOL BANNER */
+.spool-banner{background:linear-gradient(135deg,var(--s1),var(--s2));border:1px solid var(--border);
+  padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  border-radius:var(--r-lg);box-shadow:0 4px 20px rgba(0,0,0,.25);}
+.spool-label{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+.spool-val{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--a2);margin-top:2px;text-shadow:0 0 16px rgba(255,157,77,.4);}
+.spool-ctrl{display:flex;align-items:center;gap:8px;}
+.spool-ctrl button{background:var(--s3);border:1px solid var(--border);color:var(--text);
+  width:30px;height:30px;font-size:1rem;cursor:pointer;font-family:'Space Mono',monospace;transition:all .2s;border-radius:var(--r-pill);}
+.spool-ctrl button:hover{border-color:var(--a2);color:var(--a2);box-shadow:var(--glow-a2);}
+.spool-ctrl input{width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:.85rem;padding:5px 6px;text-align:center;outline:none;border-radius:var(--r-sm);}
+.spool-ctrl input:focus{border-color:var(--a2);box-shadow:var(--glow-a2);}
+
+/* SCAN BUTTONS */
+.scan-actions{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.scan-btn{background:var(--s1);border:1.5px solid var(--border);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:.62rem;padding:11px 18px;cursor:pointer;
+  letter-spacing:.06em;text-transform:uppercase;transition:all .2s;font-weight:700;
+  border-radius:var(--r-pill);}
+.scan-btn.scan-in{border-color:var(--accent);color:var(--accent);background:rgba(200,240,58,.06);
+  box-shadow:var(--glow-accent-soft);animation:pulseGlow 3s ease-in-out infinite;}
+.scan-btn.scan-in:hover{background:rgba(200,240,58,.14);box-shadow:var(--glow-accent);transform:translateY(-1px);}
+.scan-btn.scan-out{border-color:var(--danger);color:var(--danger);background:rgba(255,84,112,.06);}
+.scan-btn.scan-out:hover{background:rgba(255,84,112,.14);box-shadow:var(--glow-danger);transform:translateY(-1px);}
+.scan-btn.scan-mgr{margin-left:auto;color:var(--muted);border-color:var(--border);font-weight:400;background:transparent;}
+.scan-btn.scan-mgr:hover{color:var(--text);border-color:var(--border2);}
+.scan-note{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted2);width:100%;line-height:1.6;margin-top:2px;}
+@keyframes pulseGlow{
+  0%,100%{box-shadow:var(--glow-accent-soft);}
+  50%{box-shadow:0 0 30px rgba(200,240,58,.4);}
+}
+
+/* SCAN OVERLAY */
+.scan-overlay{display:none;position:fixed;inset:0;z-index:500;background:#000;flex-direction:column;}
+.scan-overlay.show{display:flex;}
+.scan-top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+  background:rgba(12,13,20,.94);border-bottom:1px solid var(--border);
+  font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text);}
+.scan-top.mode-in{color:var(--accent);text-shadow:0 0 12px rgba(200,240,58,.4);}
+.scan-top.mode-out{color:var(--danger);text-shadow:0 0 12px rgba(255,84,112,.4);}
+.scan-close{background:var(--s2);border:1px solid var(--border);color:var(--text);width:32px;height:32px;font-size:1rem;cursor:pointer;flex-shrink:0;border-radius:50%;transition:all .2s;}
+.scan-close:hover{border-color:var(--border2);}
+.scan-video-wrap{position:relative;flex:1;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center;}
+#scan-video{width:100%;height:100%;object-fit:cover;}
+.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:78%;max-width:340px;height:110px;border:2px solid var(--accent);border-radius:var(--r-md);
+  box-shadow:0 0 0 2000px rgba(0,0,0,.45), 0 0 30px rgba(200,240,58,.5);pointer-events:none;}
+.scan-flash{position:absolute;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--accent);color:#0c0d14;font-family:'Space Mono',monospace;font-weight:700;
+  font-size:.8rem;padding:11px 20px;border-radius:var(--r-pill);opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;max-width:88%;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:var(--glow-accent);}
+.scan-flash.out{background:var(--danger);color:#fff;box-shadow:var(--glow-danger);}
+.scan-flash.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.scan-error{background:rgba(255,84,112,.15);border-top:1px solid var(--danger);color:#ffb3b3;
+  font-family:'Space Mono',monospace;font-size:.68rem;padding:16px 20px;line-height:1.7;}
+.scan-log-wrap{max-height:24vh;overflow-y:auto;background:var(--s1);border-top:1px solid var(--border);padding:12px 18px;}
+.scan-log-title{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.scan-log-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.74rem;}
+.scan-log-item:last-child{border-bottom:none;}
+.sl-check{color:var(--accent);font-weight:700;flex-shrink:0;text-shadow:0 0 8px rgba(200,240,58,.4);}
+.sl-check.out{color:var(--danger);text-shadow:0 0 8px rgba(255,84,112,.4);}
+.sl-qty{margin-left:auto;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);flex-shrink:0;}
+
+/* ASSIGN PANEL (unknown barcode) */
+.scan-assign{display:none;position:absolute;inset:0;background:rgba(0,0,0,.82);align-items:flex-end;justify-content:center;z-index:5;}
+.scan-assign.show{display:flex;}
+.assign-card{background:var(--s1);border-top:2px solid var(--a2);width:100%;max-width:480px;
+  padding:22px;display:flex;flex-direction:column;gap:11px;border-radius:var(--r-lg) var(--r-lg) 0 0;
+  box-shadow:0 -8px 40px rgba(0,0,0,.4);}
+.assign-title{font-size:.9rem;font-weight:800;color:var(--text);}
+.assign-code{font-family:'Space Mono',monospace;font-size:.85rem;color:var(--a2);letter-spacing:.05em;text-shadow:0 0 10px rgba(255,157,77,.4);}
+.assign-sub-lbl{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:2px;line-height:1.5;}
+.assign-card select{background:var(--bg);border:1px solid var(--border);color:var(--text);
+  font-family:'Space Mono',monospace;font-size:.75rem;padding:11px 12px;outline:none;width:100%;border-radius:var(--r-sm);}
+.assign-card select:focus{border-color:var(--accent);box-shadow:var(--glow-accent-soft);}
+.assign-actions{display:flex;gap:10px;margin-top:6px;}
+.assign-actions button{flex:1;padding:12px;font-family:'Space Mono',monospace;font-size:.62rem;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border);
+  background:var(--s2);color:var(--text);border-radius:var(--r-pill);transition:all .2s;}
+.assign-actions button.primary{background:var(--accent);color:#0c0d14;border-color:var(--accent);font-weight:700;box-shadow:var(--glow-accent-soft);}
+.assign-actions button.primary:hover{box-shadow:var(--glow-accent);}
+
+/* MAPPING MANAGER */
+.mapmgr-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.75);
+  align-items:center;justify-content:center;}
+.mapmgr-overlay.show{display:flex;}
+.mapmgr-card{background:var(--s1);border:1px solid var(--border);width:92%;max-width:480px;
+  max-height:72vh;display:flex;flex-direction:column;border-radius:var(--r-lg);box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;}
+.mapmgr-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;
+  border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.68rem;
+  letter-spacing:.08em;text-transform:uppercase;background:var(--s2);}
+.mapmgr-hdr button{background:var(--s3);border:1px solid var(--border);color:var(--text);width:28px;height:28px;cursor:pointer;flex-shrink:0;border-radius:50%;}
+.mapmgr-body{overflow-y:auto;padding:8px 20px 16px;}
+.mapmgr-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:.68rem;}
+.mapmgr-code{font-family:'Space Mono',monospace;color:var(--a2);min-width:96px;flex-shrink:0;}
+.mapmgr-name{flex:1;color:var(--text);}
+.mapmgr-row button{background:var(--s2);border:1px solid var(--border);color:var(--danger);width:26px;height:26px;cursor:pointer;font-size:.68rem;flex-shrink:0;border-radius:50%;transition:all .2s;}
+.mapmgr-row button:hover{box-shadow:var(--glow-danger);}
+.mapmgr-empty{padding:28px 0;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.68rem;line-height:1.7;}
+
+/* ── TABLE VIEW ── */
+#view-table{display:none;}
+#view-table.shown{display:block;background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.25);}
+.stock-table{width:100%;border-collapse:collapse;font-size:.75rem;}
+.stock-table th{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);background:var(--s2);}
+.stock-table th.center,.stock-table td.center{text-align:center;}
+.stock-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.stock-table tr:hover td{background:var(--s2);}
+.t-dot{width:16px;height:16px;border-radius:50%;display:inline-block;border:2px solid rgba(255,255,255,.15);vertical-align:middle;margin-right:6px;box-shadow:0 0 8px rgba(255,255,255,.08);}
+.t-name{font-weight:600;font-size:.75rem;}
+.t-sub{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);}
+.t-hex{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);}
+.qty-ctrl{display:inline-flex;align-items:center;gap:6px;background:var(--s2);padding:3px;border-radius:var(--r-pill);border:1px solid var(--border);}
+.qty-ctrl button{background:var(--s3);border:1px solid var(--border);color:var(--text);border-radius:50%;
+  width:22px;height:22px;font-size:.85rem;line-height:1;cursor:pointer;transition:all .2s;}
+.qty-ctrl button:hover{border-color:var(--accent);color:var(--accent);box-shadow:var(--glow-accent-soft);}
+.qty-ctrl .qty-val{font-family:'Space Mono',monospace;font-size:.75rem;min-width:22px;text-align:center;color:var(--text);}
+.qty-ctrl .qty-val.has-stock{color:var(--accent);text-shadow:0 0 10px rgba(200,240,58,.4);}
+.t-mat{display:inline-block;font-family:'Space Mono',monospace;font-size:.55rem;padding:3px 10px;font-weight:700;border-radius:var(--r-pill);}
+.link-icon{color:var(--muted);text-decoration:none;font-size:.9rem;transition:all .2s;display:inline-flex;
+  width:26px;height:26px;align-items:center;justify-content:center;border-radius:50%;background:var(--s2);}
+.link-icon:hover{color:var(--accent);background:rgba(200,240,58,.1);box-shadow:var(--glow-accent-soft);}
+
+/* ── SWATCH VIEW ── */
+#view-swatches{display:none;}
+#view-swatches.shown{display:block;}
+.mat-group{margin-bottom:30px;}
+.mat-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.mat-tag{font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:#0c0d14;padding:4px 13px;border-radius:var(--r-pill);}
+.mat-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+.mat-count{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);}
+.sub-label{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin:16px 0 9px 2px;
+  display:flex;align-items:center;gap:8px;}
+.sub-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.sub-label .sub-note{font-weight:400;color:var(--muted2);letter-spacing:.04em;text-transform:none;font-size:.55rem;}
+.swatch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px;}
+.swatch{background:var(--s1);border:1.5px solid var(--border);padding:11px 9px;cursor:pointer;
+  transition:all .2s;border-radius:var(--r-md);position:relative;}
+.swatch:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.swatch.in-stock{border-color:var(--accent);box-shadow:var(--glow-accent-soft), inset 0 0 20px rgba(200,240,58,.04);}
+.swatch.in-stock:hover{box-shadow:var(--glow-accent);}
+.swatch .dot{width:34px;height:34px;border-radius:50%;margin:0 auto 8px;border:2px solid rgba(255,255,255,.12);box-shadow:0 2px 10px rgba(0,0,0,.4);}
+.swatch .s-name{font-size:.6rem;font-weight:700;text-align:center;color:var(--text);line-height:1.3;min-height:2.4em;display:flex;align-items:center;justify-content:center;}
+.swatch .s-hex{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--muted);text-align:center;margin-top:3px;}
+.swatch .s-qty{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--accent);text-align:center;margin-top:4px;min-height:14px;text-shadow:0 0 8px rgba(200,240,58,.4);}
+.swatch .s-qty-ctrl{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;}
+.swatch .s-qty-ctrl button{background:var(--s3);border:1px solid var(--border);color:var(--muted);border-radius:50%;
+  width:19px;height:19px;font-size:.7rem;line-height:1;cursor:pointer;transition:all .2s;}
+.swatch .s-qty-ctrl button:hover{border-color:var(--accent);color:var(--accent);box-shadow:var(--glow-accent-soft);}
+.swatch .s-qty-ctrl .sv{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--text);min-width:16px;text-align:center;}
+.swatch .s-link{position:absolute;top:7px;right:9px;font-size:.65rem;color:var(--muted);text-decoration:none;opacity:0;transition:opacity .2s;}
+.swatch:hover .s-link{opacity:1;}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.stat-card{background:var(--s1);border:1px solid var(--border);padding:12px 18px;
+  border-radius:var(--r-md);min-width:100px;transition:all .2s;}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.stat-val{font-family:'Space Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--accent);text-shadow:0 0 14px rgba(200,240,58,.35);}
+.stat-lbl{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:3px;}
+
+/* ─── COST PAGE ─────────────────────────────────────── */
+#page-cost{padding-bottom:80px;}
+.cost-inner{max-width:900px;margin:0 auto;padding:24px 20px;}
+.section{margin-bottom:20px;background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.2);transition:border-color .2s;}
+.section:hover{border-color:var(--border2);}
+.sec-hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);
+  background:var(--s2);cursor:pointer;user-select:none;transition:background .2s;}
+.sec-hdr:hover{background:var(--s3);}
+.sec-icon{width:30px;height:30px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.sec-title{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;flex:1;}
+.sec-cost{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--accent);font-weight:700;text-shadow:0 0 10px rgba(200,240,58,.35);}
+.chevron{color:var(--muted);font-size:9px;transition:transform .2s;}
+.section.collapsed .chevron{transform:rotate(-90deg);}
+.section.collapsed .sec-body{display:none;}
+.sec-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.sec-body.full{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.tip{background:var(--s2);border:1px solid var(--border);color:var(--muted);font-size:.55rem;padding:1px 6px;cursor:help;border-radius:var(--r-pill);}
+.inp-w{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);transition:all .2s;border-radius:var(--r-sm);}
+.inp-w:focus-within{border-color:var(--accent);box-shadow:var(--glow-accent-soft);}
+.inp-w input,.inp-w select{background:transparent;border:none;outline:none;color:var(--text);
+  font-family:'Space Mono',monospace;font-size:.8rem;padding:10px 12px;flex:1;width:100%;}
+.inp-w select option{background:var(--s1);}
+.inp-w.disabled{opacity:.5;pointer-events:none;}
+.unit{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);padding:0 12px 0 3px;white-space:nowrap;}
+input[type="range"]{-webkit-appearance:none;appearance:none;flex:1;height:4px;background:var(--border);outline:none;border-radius:var(--r-pill);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:var(--glow-accent);border:2px solid #0c0d14;}
+.range-val{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--accent);min-width:72px;text-align:right;text-shadow:0 0 8px rgba(200,240,58,.35);}
+.slider-row{display:flex;align-items:center;gap:10px;}
+
+/* RESULT */
+.result-wrap{margin-top:30px;}
+.result-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.result-hdr h2{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.rline{width:32px;height:2px;background:var(--accent);box-shadow:0 0 10px rgba(200,240,58,.5);border-radius:2px;}
+.result-table{background:var(--s1);border:1px solid var(--border);overflow:hidden;
+  border-radius:var(--r-lg);box-shadow:0 4px 24px rgba(0,0,0,.25);}
+.r-row{display:grid;grid-template-columns:32px 1fr 80px 80px;align-items:center;padding:11px 20px;border-bottom:1px solid var(--border);gap:10px;transition:background .15s;}
+.r-row:hover{background:var(--s2);}
+.r-icon{font-size:14px;}
+.r-label{font-size:.78rem;font-weight:600;}
+.r-detail{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);margin-top:2px;}
+.r-pct{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);text-align:right;}
+.r-val{font-family:'Space Mono',monospace;font-size:.8rem;font-weight:700;text-align:right;}
+.bar-row{padding:0 20px 8px;border-bottom:1px solid var(--border);}
+.bar-bg{height:3px;background:var(--bg);border-radius:var(--r-pill);overflow:hidden;}
+.bar-fill{height:100%;transition:width .4s cubic-bezier(.4,0,.2,1);border-radius:var(--r-pill);}
+.chart-wrap{display:flex;align-items:center;gap:20px;padding:20px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.legend{display:flex;flex-direction:column;gap:7px;flex:1;min-width:140px;}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:.68rem;color:var(--muted);}
+.leg-dot{width:9px;height:9px;flex-shrink:0;border-radius:50%;}
+.leg-item strong{color:var(--text);font-family:'Space Mono',monospace;font-size:.63rem;margin-left:auto;}
+.r-total{background:linear-gradient(135deg,var(--s2),var(--s3));padding:16px 20px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-top:2px solid var(--accent);}
+.total-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.total-detail{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted2);margin-top:3px;}
+.total-val{font-family:'Space Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent);text-shadow:0 0 22px rgba(200,240,58,.5);}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;}
+.price-card{background:var(--s1);border:1px solid var(--border);padding:14px 16px;border-radius:var(--r-md);transition:all .2s;}
+.price-card:hover{border-color:var(--a2);box-shadow:var(--glow-a2);transform:translateY(-2px);}
+.pc-lbl{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);}
+.pc-mult{font-size:.65rem;color:var(--a2);margin:3px 0;font-weight:700;}
+.pc-val{font-family:'Space Mono',monospace;font-size:1.05rem;color:var(--text);font-weight:700;}
+.cost-note{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted2);text-align:center;margin-top:16px;line-height:1.8;}
+
+/* ─── PRINT ─────────────────────────────────────── */
+@media print {
+  @page{size:A4;margin:10mm;}
+  body{background:#fff !important;color:#111 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body::before{display:none;}
+  .nav,.stock-bar,.filter-bar,.view-toggle,.vt-btn,.btn-print,.vis-btn,.s-link,.s-qty-ctrl,.spool-ctrl,.chip,.stats-bar,.scan-actions,.scan-overlay,.mapmgr-overlay{display:none !important;}
+  .page{padding-top:0 !important;}
+  #page-cost{display:none !important;}
+  #page-stock{display:block !important;}
+  #view-swatches.shown{display:block !important;}
+  #view-table{display:none !important;}
+  .swatch-grid{grid-template-columns:repeat(8,1fr);gap:4px;}
+  .swatch{background:#fff !important;border:1px solid #ddd !important;padding:5px;clip-path:none !important;border-radius:3px;}
+  .swatch.in-stock{border:2px solid #5a8a00 !important;}
+  .dot{width:24px !important;height:24px !important;margin:0 auto 4px !important;border:1px solid rgba(0,0,0,.12) !important;}
+  .s-name{font-size:.48rem !important;min-height:1.8em !important;color:#111 !important;}
+  .s-hex{font-size:.42rem !important;color:#888 !important;}
+  .s-qty{display:none;}
+  .mat-hdr .mat-line{background:#ddd !important;}
+  .mat-count{color:#888 !important;}
+  .sub-label{color:#888 !important;}
+  .sub-label::after{background:#ddd !important;}
+  .mat-group{page-break-inside:avoid;margin-bottom:14px;}
+  .spool-banner{display:none !important;}
+  .ph-title{color:#111 !important;}
+  .ph-sub{color:#666 !important;}
+  .ph-title span{color:#5a8a00 !important;}
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media(max-width:600px){
+  .sec-body{grid-template-columns:1fr;}
+  .price-grid{grid-template-columns:1fr;}
+  .r-row{grid-template-columns:28px 1fr 60px;}
+  .r-pct{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <svg viewBox="0 0 22 22" fill="none">
+      <path d="M11 3L19 7.5V14.5L11 19L3 14.5V7.5L11 3Z" stroke="#c8f03a" stroke-width="1.2" fill="none"/>
+      <circle cx="11" cy="11" r="2.5" fill="#c8f03a"/>
+    </svg>
+    <span>Xtrud<em>io</em></span>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchPage('stock',this)" id="tab-stock">
+      <span class="tab-icon">📦</span> Stock Filaments
+    </div>
+    <div class="nav-tab" onclick="switchPage('cost',this)" id="tab-cost">
+      <span class="tab-icon">💶</span> Simulateur Coût
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="btn-print" onclick="window.print()">⎙ Imprimer</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE STOCK -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="page-stock" class="page active">
+<div class="stock-inner">
+
+  <div class="ph">
+    <div>
+      <div class="ph-title">Stock <span>Filaments</span></div>
+      <div class="ph-sub">Bambu Lab — Références officielles</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Réf. totales</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-stock">0</div><div class="stat-lbl">En stock</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-bobs">0</div><div class="stat-lbl">Bobines total</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-spools" style="color:var(--a2)">0</div><div class="stat-lbl">Bobines réutilisables</div></div>
+  </div>
+
+  <!-- SPOOL BANNER -->
+  <div class="spool-banner">
+    <div>
+      <div class="spool-label">Bobines réutilisables en stock</div>
+      <div class="spool-val" id="spool-display">0</div>
+    </div>
+    <div class="spool-ctrl">
+      <button onclick="adjSpool(-1)">−</button>
+      <input type="number" id="spool-input" value="0" min="0" max="99" onchange="setSpool(this.value)">
+      <button onclick="adjSpool(+1)">+</button>
+    </div>
+    <div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);max-width:220px;line-height:1.5">
+      Bobines Bambu Lab réutilisables disponibles pour les recharges (refill)
+    </div>
+  </div>
+
+  <!-- SCAN ACTIONS -->
+  <div class="scan-actions">
+    <button class="scan-btn scan-in" onclick="openScan('in')">📥 Réception (scan)</button>
+    <button class="scan-btn scan-out" onclick="openScan('out')">📤 Sortie (scan)</button>
+    <button class="scan-btn scan-mgr" onclick="openMapManager()">🔗 Codes-barres associés</button>
+    <div class="scan-note">// Scan caméra du code-barres de la boîte — nécessite HTTPS (fonctionne une fois hébergé sur GitHub Pages, pas en ouvrant le fichier en local)</div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="stock-bar">
+    <span class="chip active" onclick="filterMat('all',this)">Tous</span>
+    <span class="chip" onclick="filterMat('PLA',this)">PLA</span>
+    <span class="chip a2" onclick="filterMat('PETG',this)">PETG</span>
+    <span class="chip a3" onclick="filterMat('ASA',this)">ASA</span>
+    <span class="chip a4" onclick="filterMat('TPU',this)">TPU</span>
+    <span class="chip a5" onclick="filterMat('PLA-CF',this)">PLA‑CF</span>
+    <div class="view-toggle">
+      <button class="vt-btn active" onclick="setView('table',this)" id="vt-table">≡ Tableau</button>
+      <button class="vt-btn" onclick="setView('swatches',this)" id="vt-swatches">⊞ Nuancier</button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-vis">
+      <button class="vis-btn active" onclick="setVis('all',this)">Tous</button>
+      <button class="vis-btn" onclick="setVis('in',this)">✓ En stock</button>
+      <button class="vis-btn" onclick="setVis('out',this)">○ Non stocké</button>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="search-inp" placeholder="Rechercher..." oninput="renderAll()">
+    </div>
+  </div>
+
+  <!-- TABLE VIEW -->
+  <div id="view-table" class="shown">
+    <table class="stock-table" id="stock-tbl">
+      <thead>
+        <tr>
+          <th style="width:36px"></th>
+          <th>Couleur / Référence</th>
+          <th>Matière</th>
+          <th>Sous-type</th>
+          <th class="center">Qté bobines</th>
+          <th class="center">Lien</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+
+  <!-- SWATCH VIEW -->
+  <div id="view-swatches">
+    <div id="swatch-container"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- SCAN OVERLAY (caméra) -->
+<div id="scan-overlay" class="scan-overlay">
+  <div class="scan-top" id="scan-top">
+    <span id="scan-title">Réception de stock</span>
+    <button class="scan-close" onclick="closeScan()">✕</button>
+  </div>
+  <div class="scan-video-wrap">
+    <video id="scan-video" playsinline muted></video>
+    <div class="scan-frame"></div>
+    <div id="scan-flash" class="scan-flash"></div>
+
+    <!-- Assign panel for unknown barcodes -->
+    <div id="scan-assign" class="scan-assign">
+      <div class="assign-card">
+        <div class="assign-title">Code inconnu</div>
+        <div class="assign-code" id="assign-code-display"></div>
+        <div class="assign-sub-lbl">Ce code n'a jamais été scanné. Associe-le une fois à une référence — il sera reconnu automatiquement ensuite.</div>
+        <select id="assign-mat" onchange="onAssignMatChange()"><option value="">Matière…</option></select>
+        <select id="assign-sub" onchange="onAssignSubChange()"><option value="">Sous-type…</option></select>
+        <select id="assign-color"><option value="">Couleur…</option></select>
+        <div class="assign-actions">
+          <button onclick="skipAssign()">Ignorer</button>
+          <button class="primary" onclick="confirmAssign()">Associer & compter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="scan-error" class="scan-error" style="display:none"></div>
+  <div class="scan-log-wrap">
+    <div class="scan-log-title"><span>Scans de cette session</span><span id="scan-count">0</span></div>
+    <div id="scan-log"></div>
+  </div>
+</div>
+
+<!-- MAPPING MANAGER OVERLAY -->
+<div id="mapmgr-overlay" class="mapmgr-overlay">
+  <div class="mapmgr-card">
+    <div class="mapmgr-hdr">
+      <span>Codes-barres associés</span>
+      <button onclick="closeMapManager()">✕</button>
+    </div>
+    <div id="mapmgr-body" class="mapmgr-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE COST -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="page-cost" class="page">
+<div class="cost-inner">
+
+  <div class="ph" style="margin-bottom:24px">
+    <div>
+      <div class="ph-title">Simulateur <span>Coût</span></div>
+      <div class="ph-sub">Bambu Lab H2S + AMS 2 Pro · Calcul en temps réel</div>
+    </div>
+  </div>
+
+  <!-- IMPRESSION -->
+  <div class="section" id="sc-print">
+    <div class="sec-hdr" onclick="toggleSec('sc-print')">
+      <div class="sec-icon">🖨</div>
+      <span class="sec-title">Paramètres d'impression</span>
+      <span class="sec-cost" id="lbl-print">—</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="sec-body">
+      <div class="field">
+        <label>Masse imprimée <span class="tip" title="Poids filament extrudé, pièce + supports">?</span></label>
+        <div class="inp-w"><input type="number" id="mass" value="32" min="1" max="5000" step="1" oninput="calc()"><span class="unit">g</span></div>
+      </div>
+      <div class="field">
+        <label>Durée d'impression</label>
+        <div class="inp-w">
+          <input type="number" id="hours" value="1" min="0" max="999" step="1" oninput="calc()" style="max-width:60px">
+          <span class="unit">h</span>
+          <input type="number" id="minutes" value="20" min="0" max="59" step="1" oninput="calc()" style="max-width:60px">
+          <span class="unit">min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILAMENT -->
+  <div class="section" id="sc-fil">
+    <div class="sec-hdr" onclick="toggleSec('sc-fil')">
+      <div class="sec-icon">🧵</div>
+      <span class="sec-title">Filament</span>
+      <span class="sec-cost" id="lbl-fil">—</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="sec-body">
+      <div class="field">
+        <label>Type de filament</label>
+        <div class="inp-w">
+          <select id="filType" onchange="onFilType()">
+            <option value="pla">PLA</option>
+            <option value="pla-matte">PLA Matte</option>
+            <option value="pla-hf">PLA HF</option>
+            <option value="petg">PETG</option>
+            <option value="petg-hf">PETG HF</option>
+            <option value="asa">ASA</option>
+            <option value="tpu">TPU 95A HF</option>
+            <option value="pla-cf">PLA-CF</option>
+            <option value="petg-cf">PETG-CF</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Prix du filament <span class="tip" title="Prix par kg TTC">?</span></label>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="slider-row">
+            <input type="range" id="fil-slider" min="5" max="80" value="12" step=".5" oninput="onFilSlider()">
+            <span class="range-val" id="fil-slabel">12.00 €/kg</span>
+          </div>
+          <div class="inp-w" style="max-width:160px">
+            <input type="number" id="filPrice" value="12" min="1" max="200" step=".5" oninput="onFilInput()">
+            <span class="unit">€/kg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEC -->
+  <div class="section" id="sc-elec">
+    <div class="sec-hdr" onclick="toggleSec('sc-elec')">
+      <div class="sec-icon">⚡</div>
+      <span class="sec-title">Électricité</span>
+      <span class="sec-cost" id="lbl-elec">—</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="sec-body">
+      <div class="field">
+        <label>Tarif kWh <span class="tip" title="TRV EDF France : 0,194 €/kWh — avril 2026">?</span></label>
+        <div class="inp-w"><input type="number" id="kwh" value="0.194" min=".05" max=".8" step=".001" oninput="calc()"><span class="unit">€/kWh</span></div>
+      </div>
+      <div class="field">
+        <label>Conso. calculée <span class="tip" title="Automatique selon le type de filament">?</span></label>
+        <div class="inp-w disabled"><input type="text" id="watts-disp" value="220 W" readonly></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USURE -->
+  <div class="section collapsed" id="sc-wear">
+    <div class="sec-hdr" onclick="toggleSec('sc-wear')">
+      <div class="sec-icon">🔩</div>
+      <span class="sec-title">Usure & Consommables</span>
+      <span class="sec-cost" id="lbl-wear">—</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="sec-body">
+      <div class="field"><label>Coût hotend/buse</label><div class="inp-w"><input type="number" id="nozzleCost" value="16" min="1" max="100" step=".5" oninput="calc()"><span class="unit">€</span></div></div>
+      <div class="field"><label>Durée de vie buse</label><div class="inp-w"><input type="number" id="nozzleLife" value="400" min="50" max="2000" step="50" oninput="calc()"><span class="unit">h</span></div></div>
+      <div class="field"><label>Coût plateau PEI</label><div class="inp-w"><input type="number" id="plateCost" value="40" min="5" max="200" step="1" oninput="calc()"><span class="unit">€</span></div></div>
+      <div class="field"><label>Durée de vie plateau</label><div class="inp-w"><input type="number" id="plateLife" value="700" min="50" max="5000" step="50" oninput="calc()"><span class="unit">prints</span></div></div>
+      <div class="field"><label>Filtres HEPA (coût)</label><div class="inp-w"><input type="number" id="filterCost" value="25" min="0" max="100" step="1" oninput="calc()"><span class="unit">€</span></div></div>
+      <div class="field"><label>Durée de vie filtre</label><div class="inp-w"><input type="number" id="filterLife" value="1000" min="100" max="5000" step="100" oninput="calc()"><span class="unit">h</span></div></div>
+      <div class="field"><label>Maintenance/an <span class="tip" title="Graisses, lubrifiants">?</span></label><div class="inp-w"><input type="number" id="maintCost" value="10" min="0" max="200" step="1" oninput="calc()"><span class="unit">€/an</span></div></div>
+      <div class="field"><label>Heures impression/an</label><div class="inp-w"><input type="number" id="hPerYear" value="1000" min="100" max="8760" step="50" oninput="calc()"><span class="unit">h/an</span></div></div>
+    </div>
+  </div>
+
+  <!-- AMORT -->
+  <div class="section" id="sc-amort">
+    <div class="sec-hdr" onclick="toggleSec('sc-amort')">
+      <div class="sec-icon">🏭</div>
+      <span class="sec-title">Amortissement machine</span>
+      <span class="sec-cost" id="lbl-amort">—</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="sec-body">
+      <div class="field"><label>Coût machine TTC <span class="tip" title="H2S Combo + AMS 2 Pro : ~1500 €">?</span></label><div class="inp-w"><input type="number" id="machCost" value="1500" min="100" max="20000" step="50" oninput="calc()"><span class="unit">€</span></div></div>
+      <div class="field"><label>Durée amortissement</label><div class="inp-w"><input type="number" id="amortYears" value="3" min="1" max="10" step="1" oninput="calc()"><span class="unit">ans</span></div></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-wrap">
+    <div class="result-hdr">
+      <div class="rline"></div><h2>Résultat</h2><div class="rline"></div>
+    </div>
+    <div class="result-table">
+      <div id="r-rows"></div>
+      <div class="chart-wrap">
+        <svg width="110" height="110" viewBox="0 0 110 110" id="donut-svg">
+          <circle cx="55" cy="55" r="44" fill="none" stroke="#1e1f1d" stroke-width="16"/>
+          <g id="donut-arcs"></g>
+          <text x="55" y="51" text-anchor="middle" fill="#e8e9e4" font-family="Space Mono" font-size="10" font-weight="700" id="donut-tot"></text>
+          <text x="55" y="63" text-anchor="middle" fill="#6b6d66" font-family="Space Mono" font-size="6">TOTAL</text>
+        </svg>
+        <div class="legend" id="r-legend"></div>
+      </div>
+      <div class="r-total">
+        <div>
+          <div class="total-lbl">Coût de revient</div>
+          <div class="total-detail" id="r-detail"></div>
+        </div>
+        <div class="total-val" id="r-grand">—</div>
+      </div>
+    </div>
+
+    <div class="price-grid">
+      <div class="price-card"><div class="pc-lbl">Artisanal / Local</div><div class="pc-mult">× 2.0</div><div class="pc-val" id="p2x">—</div></div>
+      <div class="price-card"><div class="pc-lbl">Petite production</div><div class="pc-mult">× 2.5</div><div class="pc-val" id="p25x">—</div></div>
+      <div class="price-card"><div class="pc-lbl">Pro / SAV inclus</div><div class="pc-mult">× 3.0</div><div class="pc-val" id="p3x">—</div></div>
+    </div>
+    <div class="cost-note">// H2S + AMS 2 Pro · TRV 0,194 €/kWh · 1000h/an · Valeurs par défaut</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<script>
+// ─── STORE URLS ───────────────────────────────────────
+const STORE = {
+  'PLA Basic':       'https://eu.store.bambulab.com/products/pla-basic-filament',
+  'PLA Matte':       'https://eu.store.bambulab.com/products/pla-matte',
+  'PLA HF':          'https://eu.store.bambulab.com/products/pla-hf',
+  'PLA Silk':        'https://eu.store.bambulab.com/products/pla-silk-dual-color',
+  'PLA Sparkle':     'https://eu.store.bambulab.com/products/pla-sparkle',
+  'PLA Tough+':      'https://eu.store.bambulab.com/products/pla-tough',
+  'PLA Translucent': 'https://eu.store.bambulab.com/products/pla-translucent',
+  'PLA-CF':          'https://eu.store.bambulab.com/products/pla-cf',
+  'PETG Basic':      'https://eu.store.bambulab.com/products/petg-basic-filament',
+  'PETG HF':         'https://eu.store.bambulab.com/products/petg-hf',
+  'PETG-CF':         'https://eu.store.bambulab.com/products/petg-cf',
+  'ASA':             'https://eu.store.bambulab.com/products/asa-filament',
+  'ASA Aero':        'https://eu.store.bambulab.com/products/asa-filament',
+  'ASA-CF':          'https://eu.store.bambulab.com/products/asa-cf',
+  'TPU 95A HF':      'https://eu.store.bambulab.com/products/tpu-95a-hf',
+  'TPU 90A':         'https://eu.store.bambulab.com/products/tpu-for-ams',
+};
+
+// ─── CATALOG ─────────────────────────────────────────
+const CATALOG = [
+  { mat:'PLA', color:'#c8f03a', subtypes:[
+    { name:'PLA Basic', colors:[
+      {n:'Jade White',hex:'#FFFFFF'},{n:'Light Gray',hex:'#D1D3D5'},{n:'Gray',hex:'#8E9089'},
+      {n:'Dark Gray',hex:'#545454'},{n:'Blue Grey',hex:'#5B6579'},{n:'Silver',hex:'#A6A9AA'},
+      {n:'Black',hex:'#000000'},{n:'Red',hex:'#C12E1F'},{n:'Maroon Red',hex:'#9D2235'},
+      {n:'Hot Pink',hex:'#F5547C'},{n:'Pink',hex:'#F55A74'},{n:'Magenta',hex:'#EC008C'},
+      {n:'Orange',hex:'#FF6A13'},{n:'Pumpkin Orange',hex:'#FF9016'},{n:'Yellow',hex:'#F4EE2A'},
+      {n:'Sunflower Yellow',hex:'#FEC600'},{n:'Gold',hex:'#E4BD68'},{n:'Beige',hex:'#F7E6DE'},
+      {n:'Bambu Green',hex:'#00AE42'},{n:'Mistletoe Green',hex:'#3F8E43'},{n:'Bright Green',hex:'#BECF00'},
+      {n:'Turquoise',hex:'#00B1B7'},{n:'Cyan',hex:'#0086D6'},{n:'Cobalt Blue',hex:'#0056B8'},
+      {n:'Blue',hex:'#0A2989'},{n:'Indigo Purple',hex:'#482960'},{n:'Purple',hex:'#5E43B7'},
+      {n:'Brown',hex:'#9D432C'},{n:'Cocoa Brown',hex:'#6F5034'},{n:'Bronze',hex:'#847D48'},
+    ]},
+    { name:'PLA Matte', colors:[
+      {n:'Ivory White',hex:'#FFFFFF'},{n:'Bone White',hex:'#CBC6B8'},{n:'Ash Gray',hex:'#9B9EA0'},
+      {n:'Nardo Gray',hex:'#757575'},{n:'Charcoal',hex:'#000000'},{n:'Scarlet Red',hex:'#DE4343'},
+      {n:'Dark Red',hex:'#BB3D43'},{n:'Plum',hex:'#950051'},{n:'Sakura Pink',hex:'#E8AFCF'},
+      {n:'Lilac Purple',hex:'#AE96D4'},{n:'Mandarin Orange',hex:'#F99963'},{n:'Lemon Yellow',hex:'#F7D959'},
+      {n:'Desert Tan',hex:'#E8DBB7'},{n:'Latte Brown',hex:'#D3B7A7'},{n:'Caramel',hex:'#AE835B'},
+      {n:'Terracotta',hex:'#B15533'},{n:'Dark Brown',hex:'#7D6556'},{n:'Dark Chocolate',hex:'#4D3324'},
+      {n:'Dark Green',hex:'#68724D'},{n:'Grass Green',hex:'#61C680'},{n:'Apple Green',hex:'#C2E189'},
+      {n:'Ice Blue',hex:'#A3D8E1'},{n:'Sky Blue',hex:'#56B7E6'},{n:'Marine Blue',hex:'#0078BF'},
+      {n:'Dark Blue',hex:'#042F56'},
+    ]},
+    { name:'PLA HF', note:'High Flow', colors:[
+      {n:'Jade White',hex:'#FFFFFF'},{n:'Gray',hex:'#8E9089'},{n:'Black',hex:'#000000'},
+      {n:'Red',hex:'#C12E1F'},{n:'Yellow',hex:'#F4EE2A'},{n:'Bambu Green',hex:'#00AE42'},
+      {n:'Cyan',hex:'#0086D6'},{n:'Blue',hex:'#0A2989'},
+    ]},
+    { name:'PLA Silk', note:'Finition nacrée brillante', colors:[
+      {n:'Onyx Black',hex:'#1a1a1a',f:'metallic'},{n:'Diamond White',hex:'#E8E8E8',f:'metallic'},
+      {n:'Silver',hex:'#B0B0B0',f:'metallic'},{n:'Gold',hex:'#D4A017',f:'metallic'},
+      {n:'Rose Gold',hex:'#C49070',f:'metallic'},{n:'Scarlet Red',hex:'#CC2200',f:'metallic'},
+      {n:'Galaxy Purple',hex:'#6030B0',f:'metallic'},{n:'Peacock Blue',hex:'#006080',f:'metallic'},
+      {n:'Emerald Green',hex:'#007050',f:'metallic'},{n:'Champagne',hex:'#D0C060',f:'metallic'},
+      {n:'Copper',hex:'#B06030',f:'metallic'},
+    ]},
+    { name:'PLA Sparkle', note:'Paillettes', colors:[
+      {n:'Onyx Black',hex:'#222222'},{n:'Diamond White',hex:'#EEEEEE'},{n:'Ruby Red',hex:'#CC1122'},
+      {n:'Sapphire Blue',hex:'#003399'},{n:'Emerald Green',hex:'#006633'},{n:'Amethyst Purple',hex:'#7722AA'},
+    ]},
+    { name:'PLA Tough+', note:'+20% résistance', colors:[
+      {n:'White',hex:'#FFFFFF'},{n:'Gray',hex:'#AFB1AE'},{n:'Silver',hex:'#959698'},{n:'Black',hex:'#000000'},
+    ]},
+    { name:'PLA Translucent', note:'Semi-transparent', colors:[
+      {n:'Teal',hex:'#009FA1',f:'t'},{n:'Light Jade',hex:'#96D8AF',f:'t'},{n:'Blue',hex:'#0047BB',f:'t'},
+      {n:'Mellow Yellow',hex:'#F5DBAB',f:'t'},{n:'Purple',hex:'#7B4F9E',f:'t'},
+      {n:'Pink',hex:'#F2AAAA',f:'t'},{n:'Clear',hex:'#F0F0F0',f:'t'},
+    ]},
+  ]},
+  { mat:'PLA-CF', color:'#9698b8', subtypes:[
+    { name:'PLA-CF', note:'Fibre carbone — buse acier trempé obligatoire', colors:[
+      {n:'Burgundy Red',hex:'#951e23'},{n:'Iris Purple',hex:'#69398E'},{n:'Matcha Green',hex:'#5c9748'},
+      {n:'Jeans Blue',hex:'#6e88bc'},{n:'Royal Blue',hex:'#2842AD'},{n:'Lava Gray',hex:'#4d5054'},
+      {n:'Black',hex:'#000000'},
+    ]},
+  ]},
+  { mat:'PETG', color:'#ff9d4d', subtypes:[
+    { name:'PETG Basic', colors:[
+      {n:'White',hex:'#FFFFFF'},{n:'Gray',hex:'#7F7E83'},{n:'Black',hex:'#000000'},
+      {n:'Red',hex:'#D6001C'},{n:'Yellow',hex:'#FCE300'},{n:'Reflex Blue',hex:'#001489'},
+      {n:'Dark Brown',hex:'#4F2C1D'},
+    ]},
+    { name:'PETG HF', note:'High Flow — 2× plus rapide', colors:[
+      {n:'White',hex:'#FFFFFF'},{n:'Cream',hex:'#F9DFB9'},{n:'Gray',hex:'#ADB1B2'},
+      {n:'Dark Gray',hex:'#515151'},{n:'Black',hex:'#000000'},{n:'Red',hex:'#EB3A3A'},
+      {n:'Orange',hex:'#F75403'},{n:'Yellow',hex:'#FFD00B'},{n:'Peanut Brown',hex:'#875718'},
+      {n:'Green',hex:'#00AE42'},{n:'Lime Green',hex:'#6EE53C'},{n:'Forest Green',hex:'#39541A'},
+      {n:'Blue',hex:'#002E96'},{n:'Lake Blue',hex:'#1F79E5'},
+    ]},
+    { name:'PETG-CF', note:'Renforcé fibre de carbone', colors:[
+      {n:'Brick Red',hex:'#9f332a'},{n:'Violet Purple',hex:'#583061'},{n:'Indigo Blue',hex:'#324585'},
+      {n:'Malachite Green',hex:'#16b08e'},{n:'Titan Gray',hex:'#6a6a6a'},{n:'Black',hex:'#000000'},
+    ]},
+  ]},
+  { mat:'ASA', color:'#3af0c8', subtypes:[
+    { name:'ASA', note:'UV & intempéries — usage extérieur', colors:[
+      {n:'White',hex:'#FFFFFF'},{n:'Gray',hex:'#7F7E83'},{n:'Black',hex:'#000000'},
+      {n:'Red',hex:'#C12E1F'},{n:'Green',hex:'#00AE42'},{n:'Blue',hex:'#0A2989'},
+    ]},
+    { name:'ASA Aero', note:'Auto-moussant, allégé', colors:[
+      {n:'White',hex:'#F0F0F0'},
+    ]},
+    { name:'ASA-CF', note:'Fibre carbone + UV', colors:[
+      {n:'Black',hex:'#1a1a1a'},{n:'Gray',hex:'#555555'},
+    ]},
+  ]},
+  { mat:'TPU', color:'#b06bff', subtypes:[
+    { name:'TPU 95A HF', note:'Flexible — 3× plus rapide · Non compatible AMS', colors:[
+      {n:'White',hex:'#FFFFEE'},{n:'Gray',hex:'#9EA2A2'},{n:'Black',hex:'#000000'},
+      {n:'Red',hex:'#EB3A3A'},{n:'Yellow',hex:'#FFD00B'},{n:'Blue',hex:'#002E96'},
+    ]},
+    { name:'TPU 90A', note:'Pour AMS — très flexible', colors:[
+      {n:'White',hex:'#FFFFEE'},{n:'Black',hex:'#000000'},{n:'Grape Jelly',hex:'#D6ABFF'},
+      {n:'Crystal Blue',hex:'#7EB4E1'},{n:'Cocoa Brown',hex:'#5C4738'},{n:'Quicksilver',hex:'#9EA2A2'},
+    ]},
+  ]},
+];
+
+// ─── STATE ───────────────────────────────────────────
+let currentMat = 'all', currentVis = 'all', currentView = 'table';
+
+function skey(mat,sub,name){ return `q_${mat}_${sub}_${name}`.replace(/\s+/g,'_'); }
+function getQty(mat,sub,name){ return parseInt(localStorage.getItem(skey(mat,sub,name))||'0'); }
+function setQty(mat,sub,name,v){
+  const q = Math.max(0,v);
+  localStorage.setItem(skey(mat,sub,name), q);
+  renderAll(); updateStats();
+}
+
+function getSpool(){ return parseInt(localStorage.getItem('spool_count')||'0'); }
+function adjSpool(d){ setSpool(getSpool()+d); }
+function setSpool(v){
+  const q = Math.max(0,parseInt(v)||0);
+  localStorage.setItem('spool_count',q);
+  document.getElementById('spool-display').textContent = q;
+  document.getElementById('spool-input').value = q;
+  updateStats();
+}
+
+// ─── NAV ─────────────────────────────────────────────
+function switchPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  el.classList.add('active');
+}
+function toggleSec(id){
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ─── FILTERS ─────────────────────────────────────────
+function filterMat(m,el){
+  currentMat=m;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+}
+function setVis(v,el){
+  currentVis=v;
+  document.querySelectorAll('.vis-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+}
+function setView(v,el){
+  currentView=v;
+  document.querySelectorAll('.vt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('view-table').classList.toggle('shown',v==='table');
+  document.getElementById('view-swatches').classList.toggle('shown',v==='swatches');
+  renderAll();
+}
+
+// ─── STATS ───────────────────────────────────────────
+function updateStats(){
+  let total=0,inStock=0,bobs=0;
+  CATALOG.forEach(m=>m.subtypes.forEach(s=>s.colors.forEach(c=>{
+    total++;
+    const q=getQty(m.mat,s.name,c.n);
+    if(q>0){inStock++;bobs+=q;}
+  })));
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-stock').textContent=inStock;
+  document.getElementById('stat-bobs').textContent=bobs;
+  const sp=getSpool();
+  document.getElementById('stat-spools').textContent=sp;
+  document.getElementById('spool-display').textContent=sp;
+  document.getElementById('spool-input').value=sp;
+}
+
+// ─── DOT STYLE ───────────────────────────────────────
+function dotStyle(hex,finish){
+  const white=['#FFFFFF','#F0F0F0','#E8E8E8','#EEEEEE','#FFFFEE'].includes(hex.toUpperCase());
+  if(finish==='t') return `background:linear-gradient(45deg,#555 25%,transparent 25%,transparent 75%,#555 75%),linear-gradient(45deg,#555 25%,#333 25%,#333 75%,#555 75%);background-size:8px 8px;background-position:0 0,4px 4px;border:2px solid rgba(255,255,255,.2);`;
+  if(finish==='metallic') return `background:linear-gradient(135deg,${hex}dd,${hex}88,${hex}dd);border:2px solid rgba(255,255,255,.3);`;
+  return `background:${hex};border:2px solid rgba(${white?'0,0,0,.12':'255,255,255,.1'});`;
+}
+
+// ─── SEARCH FILTER ───────────────────────────────────
+function matchSearch(name,sub,mat){
+  const q=(document.getElementById('search-inp').value||'').toLowerCase().trim();
+  if(!q) return true;
+  return name.toLowerCase().includes(q)||sub.toLowerCase().includes(q)||mat.toLowerCase().includes(q);
+}
+
+function visMatch(mat,sub,name){
+  const q=getQty(mat,sub,name);
+  if(currentVis==='in') return q>0;
+  if(currentVis==='out') return q===0;
+  return true;
+}
+
+// ─── RENDER TABLE ────────────────────────────────────
+function renderTable(){
+  const tb=document.getElementById('tbl-body');
+  tb.innerHTML='';
+  CATALOG.forEach(m=>{
+    if(currentMat!=='all'&&m.mat!==currentMat) return;
+    m.subtypes.forEach(s=>{
+      s.colors.forEach(c=>{
+        if(!visMatch(m.mat,s.name,c.n)) return;
+        if(!matchSearch(c.n,s.name,m.mat)) return;
+        const q=getQty(m.mat,s.name,c.n);
+        const storeUrl=STORE[s.name]||'https://eu.store.bambulab.com';
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td><span class="t-dot" style="${dotStyle(c.hex,c.f)}"></span></td>
+          <td><div class="t-name">${c.n}</div><div class="t-hex">${c.hex}</div></td>
+          <td><span class="t-mat" style="background:${m.color};color:#0e0f0e">${m.mat}</span></td>
+          <td><div class="t-sub">${s.name}</div>${s.note?`<div class="t-hex">${s.note}</div>`:''}</td>
+          <td class="center">
+            <div class="qty-ctrl">
+              <button onclick="setQty('${m.mat}','${s.name}','${c.n}',${q-1})">−</button>
+              <span class="qty-val${q>0?' has-stock':''}">${q}</span>
+              <button onclick="setQty('${m.mat}','${s.name}','${c.n}',${q+1})">+</button>
+            </div>
+          </td>
+          <td class="center"><a class="link-icon" href="${storeUrl}" target="_blank" title="Voir sur Bambu Lab store">↗</a></td>
+        `;
+        tb.appendChild(tr);
+      });
+    });
+  });
+}
+
+// ─── RENDER SWATCHES ─────────────────────────────────
+function renderSwatches(){
+  const cont=document.getElementById('swatch-container');
+  cont.innerHTML='';
+  CATALOG.forEach(m=>{
+    if(currentMat!=='all'&&m.mat!==currentMat) return;
+    let anyVisible=false;
+    const groupEl=document.createElement('div');
+    groupEl.className='mat-group';
+    const totalC=m.subtypes.reduce((s,st)=>s+st.colors.length,0);
+    groupEl.innerHTML=`<div class="mat-hdr">
+      <span class="mat-tag" style="background:${m.color}">${m.mat}</span>
+      <div class="mat-line"></div>
+      <span class="mat-count">${m.subtypes.length} sous-types · ${totalC} couleurs</span>
+    </div>`;
+    m.subtypes.forEach(s=>{
+      const colors=s.colors.filter(c=>visMatch(m.mat,s.name,c.n)&&matchSearch(c.n,s.name,m.mat));
+      if(!colors.length) return;
+      anyVisible=true;
+      const subLbl=document.createElement('div');
+      subLbl.className='sub-label';
+      subLbl.innerHTML=`${s.name}${s.note?` <span class="sub-note">— ${s.note}</span>`:''}`;
+      groupEl.appendChild(subLbl);
+      const grid=document.createElement('div');
+      grid.className='swatch-grid';
+      colors.forEach(c=>{
+        const q=getQty(m.mat,s.name,c.n);
+        const storeUrl=STORE[s.name]||'https://eu.store.bambulab.com';
+        const sw=document.createElement('div');
+        sw.className='swatch'+(q>0?' in-stock':'');
+        sw.innerHTML=`
+          <a class="s-link" href="${storeUrl}" target="_blank" onclick="event.stopPropagation()" title="Bambu Lab Store">↗</a>
+          <div class="dot" style="${dotStyle(c.hex,c.f)}"></div>
+          <div class="s-name">${c.n}</div>
+          <div class="s-hex">${c.hex}</div>
+          <div class="s-qty">${q>0?q+' bobine'+(q>1?'s':''):''}</div>
+          <div class="s-qty-ctrl">
+            <button onclick="event.stopPropagation();setQty('${m.mat}','${s.name}','${c.n}',${q-1})">−</button>
+            <span class="sv">${q}</span>
+            <button onclick="event.stopPropagation();setQty('${m.mat}','${s.name}','${c.n}',${q+1})">+</button>
+          </div>
+        `;
+        sw.addEventListener('click',()=>{
+          const newQ=q>0?0:1;
+          setQty(m.mat,s.name,c.n,newQ);
+        });
+        grid.appendChild(sw);
+      });
+      groupEl.appendChild(grid);
+    });
+    if(anyVisible) cont.appendChild(groupEl);
+  });
+}
+
+function renderAll(){
+  if(currentView==='table') renderTable();
+  else renderSwatches();
+}
+
+// ─── COST CALC ───────────────────────────────────────
+const filPresets={
+  'pla':     {watts:220,nozzleLife:400,filterLife:1000},
+  'pla-matte':{watts:200,nozzleLife:400,filterLife:1000},
+  'pla-hf':  {watts:220,nozzleLife:400,filterLife:1000},
+  'petg':    {watts:200,nozzleLife:350,filterLife:900},
+  'petg-hf': {watts:200,nozzleLife:350,filterLife:900},
+  'asa':     {watts:280,nozzleLife:350,filterLife:600},
+  'tpu':     {watts:200,nozzleLife:500,filterLife:1200},
+  'pla-cf':  {watts:220,nozzleLife:80, filterLife:800},
+  'petg-cf': {watts:220,nozzleLife:80, filterLife:800},
+};
+const COLORS=['#c8f03a','#f0a83a','#3af0c8','#f03a70','#a03af0','#3a8cf0','#f0f03a'];
+
+function g(id){return parseFloat(document.getElementById(id).value)||0;}
+
+function onFilType(){
+  const t=document.getElementById('filType').value;
+  const p=filPresets[t]||filPresets['pla'];
+  document.getElementById('nozzleLife').value=p.nozzleLife;
+  document.getElementById('filterLife').value=p.filterLife;
+  calc();
+}
+function onFilSlider(){
+  const v=parseFloat(document.getElementById('fil-slider').value);
+  document.getElementById('filPrice').value=v;
+  document.getElementById('fil-slabel').textContent=v.toFixed(2)+' €/kg';
+  calc();
+}
+function onFilInput(){
+  const v=parseFloat(document.getElementById('filPrice').value)||0;
+  document.getElementById('fil-slider').value=Math.min(80,Math.max(5,v));
+  document.getElementById('fil-slabel').textContent=v.toFixed(2)+' €/kg';
+  calc();
+}
+
+function calc(){
+  const mass=g('mass'), h=g('hours'), mn=g('minutes'), dur=h+mn/60;
+  const kwh=g('kwh'), fp=g('filPrice');
+  const t=document.getElementById('filType').value;
+  const p=filPresets[t]||filPresets['pla'];
+  const watts=p.watts;
+  document.getElementById('watts-disp').value=watts+' W';
+
+  const nozC=g('nozzleCost'),nozL=g('nozzleLife');
+  const platC=g('plateCost'),platL=g('plateLife');
+  const filtC=g('filterCost'),filtL=g('filterLife');
+  const maintC=g('maintCost'),hpy=g('hPerYear')||1;
+  const machC=g('machCost'),ay=g('amortYears')||1;
+
+  const cFil=(mass/1000)*fp;
+  const cElec=(watts/1000)*dur*kwh;
+  const cNoz=nozL>0?(nozC/nozL)*dur:0;
+  const cPlat=platL>0?platC/platL:0;
+  const cFilt=filtL>0?(filtC/filtL)*dur:0;
+  const cMaint=(maintC/hpy)*dur;
+  const cAmort=(machC/(hpy*ay))*dur;
+  const total=cFil+cElec+cNoz+cPlat+cFilt+cMaint+cAmort;
+
+  const rows=[
+    {icon:'🧵',label:'Filament',detail:`${mass}g × ${fp.toFixed(2)} €/kg`,cost:cFil},
+    {icon:'⚡',label:'Électricité',detail:`${watts}W (auto) × ${dur.toFixed(2)}h × ${kwh} €/kWh`,cost:cElec},
+    {icon:'🔩',label:'Buse / Hotend',detail:`${nozC}€ / ${nozL}h`,cost:cNoz},
+    {icon:'🛏',label:'Plateau PEI',detail:`${platC}€ / ${platL} prints`,cost:cPlat},
+    {icon:'🌬',label:'Filtres HEPA',detail:`${filtC}€ / ${filtL}h`,cost:cFilt},
+    {icon:'🔧',label:'Maintenance',detail:`${maintC}€/an ÷ ${hpy}h`,cost:cMaint},
+    {icon:'🏭',label:'Amortissement',detail:`${machC}€ sur ${ay} ans`,cost:cAmort},
+  ];
+
+  const rc=document.getElementById('r-rows');
+  rc.innerHTML='';
+  rows.forEach((r,i)=>{
+    const pct=total>0?(r.cost/total*100):0;
+    const rr=document.createElement('div');rr.className='r-row';
+    rr.innerHTML=`<span class="r-icon">${r.icon}</span>
+      <div><div class="r-label">${r.label}</div><div class="r-detail">${r.detail}</div></div>
+      <span class="r-pct">${pct.toFixed(1)}%</span>
+      <span class="r-val">${r.cost.toFixed(3)} €</span>`;
+    rc.appendChild(rr);
+    const br=document.createElement('div');br.className='bar-row';
+    br.innerHTML=`<div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${COLORS[i]}"></div></div>`;
+    rc.appendChild(br);
+  });
+
+  // Labels sections
+  document.getElementById('lbl-print').textContent=`${dur.toFixed(2)}h · ${mass}g`;
+  document.getElementById('lbl-fil').textContent=fmt(cFil);
+  document.getElementById('lbl-elec').textContent=fmt(cElec);
+  document.getElementById('lbl-wear').textContent=fmt(cNoz+cPlat+cFilt+cMaint);
+  document.getElementById('lbl-amort').textContent=fmt(cAmort);
+
+  document.getElementById('r-grand').textContent=fmt(total);
+  document.getElementById('r-detail').textContent=`filament ${fmt(cFil)} · élec ${fmt(cElec)} · usure ${fmt(cNoz+cPlat+cFilt+cMaint)} · amort. ${fmt(cAmort)}`;
+  document.getElementById('p2x').textContent=fmt(total*2);
+  document.getElementById('p25x').textContent=fmt(total*2.5);
+  document.getElementById('p3x').textContent=fmt(total*3);
+
+  // Donut
+  const arcs=document.getElementById('donut-arcs');arcs.innerHTML='';
+  const circ=2*Math.PI*44; let off=0;
+  const g2=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g2.setAttribute('transform','rotate(-90 55 55)');
+  rows.forEach((r,i)=>{
+    if(r.cost<=0||total<=0) return;
+    const pct=r.cost/total,dash=pct*circ,gap=circ-dash;
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','55');c.setAttribute('cy','55');c.setAttribute('r','44');
+    c.setAttribute('fill','none');c.setAttribute('stroke',COLORS[i]);c.setAttribute('stroke-width','16');
+    c.setAttribute('stroke-dasharray',`${dash} ${gap}`);c.setAttribute('stroke-dashoffset',`${-off*circ}`);
+    g2.appendChild(c);off+=pct;
+  });
+  arcs.appendChild(g2);
+  document.getElementById('donut-tot').textContent=total.toFixed(2)+'€';
+
+  // Legend
+  const leg=document.getElementById('r-legend');leg.innerHTML='';
+  rows.forEach((r,i)=>{
+    const pct=total>0?(r.cost/total*100):0;
+    const li=document.createElement('div');li.className='leg-item';
+    li.innerHTML=`<div class="leg-dot" style="background:${COLORS[i]}"></div><span>${r.label}</span><strong>${pct.toFixed(1)}%</strong>`;
+    leg.appendChild(li);
+  });
+}
+function fmt(v){return v.toFixed(2)+' €';}
+
+// ══════════════════════════════════════════════════════
+// SCAN CODE-BARRES (réception / sortie de stock)
+// ══════════════════════════════════════════════════════
+let scanMode=null;        // 'in' ou 'out'
+let scanStream=null;
+let scanDetector=null;
+let scanActive=false;
+let scanCooldowns={};     // code -> timestamp du dernier scan accepté
+let pendingCode=null;     // code en attente d'association
+let scanSessionCount=0;
+
+function getBarcodeMap(){ return JSON.parse(localStorage.getItem('barcodeMap')||'{}'); }
+function saveBarcodeMap(map){ localStorage.setItem('barcodeMap', JSON.stringify(map)); }
+
+function openScan(mode){
+  scanMode=mode;
+  scanSessionCount=0;
+  document.getElementById('scan-count').textContent='0';
+  document.getElementById('scan-log').innerHTML='';
+  document.getElementById('scan-title').textContent = mode==='in' ? 'Réception de stock' : 'Sortie de stock';
+  const top=document.getElementById('scan-top');
+  top.classList.toggle('mode-in', mode==='in');
+  top.classList.toggle('mode-out', mode==='out');
+  document.getElementById('scan-overlay').classList.add('show');
+  startCamera();
+}
+
+function closeScan(){
+  stopCamera();
+  document.getElementById('scan-overlay').classList.remove('show');
+  document.getElementById('scan-assign').classList.remove('show');
+  pendingCode=null;
+}
+
+async function startCamera(){
+  document.getElementById('scan-error').style.display='none';
+  if(!('BarcodeDetector' in window)){
+    document.getElementById('scan-error').style.display='block';
+    document.getElementById('scan-error').textContent=
+      "Le scan natif n'est pas supporté par ce navigateur. Utilise Chrome sur Android, et assure-toi que la page est servie en HTTPS (ex: GitHub Pages) — le scan ne fonctionne pas si le fichier est ouvert en local.";
+    return;
+  }
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const video=document.getElementById('scan-video');
+    video.srcObject=scanStream;
+    await video.play();
+    scanDetector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39']});
+    scanActive=true;
+    scanLoop();
+  }catch(e){
+    document.getElementById('scan-error').style.display='block';
+    document.getElementById('scan-error').textContent="Impossible d'accéder à la caméra : "+e.message;
+  }
+}
+
+function stopCamera(){
+  scanActive=false;
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+}
+
+async function scanLoop(){
+  if(!scanActive) return;
+  const video=document.getElementById('scan-video');
+  if(video.readyState>=2 && !document.getElementById('scan-assign').classList.contains('show')){
+    try{
+      const codes=await scanDetector.detect(video);
+      if(codes.length) handleCode(codes[0].rawValue);
+    }catch(e){ /* ignore erreurs ponctuelles de détection */ }
+  }
+  setTimeout(scanLoop,180);
+}
+
+function handleCode(code){
+  const now=Date.now();
+  if(scanCooldowns[code] && now-scanCooldowns[code]<1800) return;
+  scanCooldowns[code]=now;
+
+  const map=getBarcodeMap();
+  if(map[code]){
+    applyStockChange(map[code],code);
+  }else{
+    pendingCode=code;
+    showAssignPanel(code);
+  }
+}
+
+function applyStockChange(entry){
+  const {mat,sub,name}=entry;
+  const cur=getQty(mat,sub,name);
+  const next = scanMode==='in' ? cur+1 : Math.max(0,cur-1);
+  setQty(mat,sub,name,next);
+  flashSuccess(name,next);
+  logScan(name,next);
+}
+
+function flashSuccess(name,qty){
+  const el=document.getElementById('scan-flash');
+  el.classList.toggle('out', scanMode==='out');
+  el.textContent=(scanMode==='in'?'+1  ':'−1  ')+name+'  →  '+qty+' bobine'+(qty>1?'s':'');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  if(navigator.vibrate) navigator.vibrate(70);
+  beep();
+}
+
+function logScan(name,qty){
+  scanSessionCount++;
+  document.getElementById('scan-count').textContent=scanSessionCount;
+  const log=document.getElementById('scan-log');
+  const item=document.createElement('div');
+  item.className='scan-log-item';
+  item.innerHTML=`<span class="sl-check${scanMode==='out'?' out':''}">✓</span> ${name} <span class="sl-qty">${scanMode==='in'?'+1':'−1'} → ${qty}</span>`;
+  log.prepend(item);
+}
+
+function beep(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = scanMode==='in' ? 880 : 520;
+    g.gain.value=0.07;
+    o.start(); o.stop(ctx.currentTime+0.09);
+  }catch(e){}
+}
+
+// ─── Panneau d'association (code inconnu) ────────────
+function showAssignPanel(code){
+  document.getElementById('assign-code-display').textContent=code;
+  const matSel=document.getElementById('assign-mat');
+  matSel.innerHTML='<option value="">Matière…</option>'+CATALOG.map(m=>`<option value="${m.mat}">${m.mat}</option>`).join('');
+  document.getElementById('assign-sub').innerHTML='<option value="">Sous-type…</option>';
+  document.getElementById('assign-color').innerHTML='<option value="">Couleur…</option>';
+  document.getElementById('scan-assign').classList.add('show');
+}
+function onAssignMatChange(){
+  const matVal=document.getElementById('assign-mat').value;
+  const m=CATALOG.find(x=>x.mat===matVal);
+  document.getElementById('assign-sub').innerHTML='<option value="">Sous-type…</option>'+
+    (m?m.subtypes.map(s=>`<option value="${s.name}">${s.name}</option>`).join(''):'');
+  document.getElementById('assign-color').innerHTML='<option value="">Couleur…</option>';
+}
+function onAssignSubChange(){
+  const matVal=document.getElementById('assign-mat').value;
+  const subVal=document.getElementById('assign-sub').value;
+  const m=CATALOG.find(x=>x.mat===matVal);
+  const s=m&&m.subtypes.find(x=>x.name===subVal);
+  document.getElementById('assign-color').innerHTML='<option value="">Couleur…</option>'+
+    (s?s.colors.map(c=>`<option value="${c.n}">${c.n}</option>`).join(''):'');
+}
+function confirmAssign(){
+  const mat=document.getElementById('assign-mat').value;
+  const sub=document.getElementById('assign-sub').value;
+  const name=document.getElementById('assign-color').value;
+  if(!mat||!sub||!name){ alert('Sélectionne matière, sous-type et couleur avant de valider.'); return; }
+  const map=getBarcodeMap();
+  map[pendingCode]={mat,sub,name};
+  saveBarcodeMap(map);
+  document.getElementById('scan-assign').classList.remove('show');
+  applyStockChange({mat,sub,name});
+  pendingCode=null;
+}
+function skipAssign(){
+  document.getElementById('scan-assign').classList.remove('show');
+  pendingCode=null;
+}
+
+// ─── Gestionnaire des associations codes-barres ──────
+function openMapManager(){
+  const map=getBarcodeMap();
+  const codes=Object.keys(map);
+  const body=document.getElementById('mapmgr-body');
+  body.innerHTML = codes.length ? codes.map(code=>{
+    const e=map[code];
+    return `<div class="mapmgr-row">
+      <span class="mapmgr-code">${code}</span>
+      <span class="mapmgr-name">${e.mat} · ${e.sub} · ${e.name}</span>
+      <button onclick="deleteMapping('${code}')" title="Supprimer l'association">✕</button>
+    </div>`;
+  }).join('') : '<div class="mapmgr-empty">Aucune association enregistrée pour le moment.<br>Elles se créent automatiquement au premier scan de chaque référence.</div>';
+  document.getElementById('mapmgr-overlay').classList.add('show');
+}
+function deleteMapping(code){
+  const map=getBarcodeMap();
+  delete map[code];
+  saveBarcodeMap(map);
+  openMapManager();
+}
+function closeMapManager(){
+  document.getElementById('mapmgr-overlay').classList.remove('show');
+}
+
+// ─── INIT ────────────────────────────────────────────
+updateStats();
+renderAll();
+calc();
+</script>
+</body>
+</html>
