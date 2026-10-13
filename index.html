@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Xtrudio — Stock & Coût Bambu Lab</title>
-<meta name="description" content="Gestion de stock de filaments Bambu Lab (PLA, PETG, ASA, TPU, PLA-CF) et simulateur de coût d'impression 3D pour H2S + AMS 2 Pro.">
+<meta name="description" content="Gestion de stock de filaments Bambu Lab et simulateur de coût d'impression 3D.">
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0c0d14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -14,353 +13,193 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Xtrudio">
 
-<!-- Icons -->
 <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Styles -->
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-logo">
-    <svg viewBox="0 0 22 22" fill="none">
-      <path d="M11 3L19 7.5V14.5L11 19L3 14.5V7.5L11 3Z" stroke="#c8f03a" stroke-width="1.2" fill="none"/>
+<!-- ═══ EN-TÊTE ═══ -->
+<header class="app-head">
+  <div class="brand">
+    <svg viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <path d="M11 3L17.93 7V15L11 19L4.07 15V7Z" stroke="#c8f03a" stroke-width="1.4" stroke-linejoin="round"/>
       <circle cx="11" cy="11" r="2.5" fill="#c8f03a"/>
     </svg>
-    <span>Xtrud<em>io</em></span>
+    <span class="brand-name">Xtrud<em>io</em></span>
   </div>
-  <div class="nav-tabs">
-    <div class="nav-tab active" onclick="switchPage('stock',this)" id="tab-stock">
-      <span class="tab-icon">📦</span> Stock Filaments
+  <div class="head-right">
+    <span class="head-title" id="head-title">Stock</span>
+    <button class="icon-btn" id="btn-print" title="Imprimer l'état du stock" aria-label="Imprimer l'état du stock">🖨️</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══ VUE STOCK ═══ -->
+  <div class="view" id="view-stock">
+    <div class="print-meta" id="print-meta"></div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="stat-refs">0</div><div class="stat-lbl">Références</div></div>
+      <div class="stat"><div class="stat-val" id="stat-instock">0</div><div class="stat-lbl">En stock</div></div>
+      <div class="stat"><div class="stat-val" id="stat-spools">0</div><div class="stat-lbl">Bobines</div></div>
     </div>
-    <div class="nav-tab" onclick="switchPage('cost',this)" id="tab-cost">
-      <span class="tab-icon">💶</span> Simulateur Coût
+
+    <div class="spool-row">
+      <span class="sr-icon">♻️</span>
+      <div class="sr-text">
+        <div class="sr-label">Bobines réutilisables</div>
+        <div class="sr-sub">Disponibles pour les recharges</div>
+      </div>
+      <div class="stepper orange" id="reuse-stepper">
+        <button data-reuse="-1" aria-label="Retirer">−</button>
+        <span class="val" id="reuse-val">0</span>
+        <button data-reuse="1" aria-label="Ajouter">+</button>
+      </div>
     </div>
+
+    <div class="scan-row">
+      <button class="scan-btn scan-in" data-scan="in">📥 Réception</button>
+      <button class="scan-btn scan-out" data-scan="out">📤 Sortie</button>
+    </div>
+
+    <div class="filters">
+      <div class="mat-chips" id="mat-chips"></div>
+      <div class="filter-line">
+        <div class="seg grow" id="seg-vis">
+          <button data-vis="all" class="active">Tous</button>
+          <button data-vis="in">✓ En stock</button>
+          <button data-vis="out">○ Manquants</button>
+        </div>
+        <div class="seg view" id="seg-view">
+          <button data-sview="list" class="active" title="Liste" aria-label="Vue liste">≡</button>
+          <button data-sview="swatch" title="Nuancier" aria-label="Vue nuancier">⊞</button>
+        </div>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Rechercher une couleur, un type…" autocomplete="off">
+    </div>
+
+    <div id="stock-list"></div>
   </div>
-  <div class="nav-right">
-    <button class="btn-print" onclick="window.print()">⎙ <span class="label-text">Imprimer</span></button>
+
+  <!-- ═══ VUE SIMULATEUR ═══ -->
+  <div class="view" id="view-sim">
+    <section class="card">
+      <div class="card-title">Impression</div>
+      <div class="grid2">
+        <div class="field">
+          <label for="sim-mass">Masse imprimée</label>
+          <div class="inp"><input type="number" id="sim-mass" min="0" step="1" inputmode="decimal"><span class="unit">g</span></div>
+        </div>
+        <div class="field">
+          <label>Durée</label>
+          <div class="inp">
+            <input type="number" id="sim-h" min="0" step="1" inputmode="numeric" aria-label="Heures"><span class="unit">h</span>
+            <input type="number" id="sim-min" min="0" max="59" step="1" inputmode="numeric" aria-label="Minutes"><span class="unit">min</span>
+          </div>
+        </div>
+      </div>
+      <div class="field mt">
+        <label for="sim-fil">Filament</label>
+        <div class="inp"><select id="sim-fil"></select></div>
+      </div>
+      <div class="field mt">
+        <label for="sim-prn">Imprimante</label>
+        <div class="inp"><select id="sim-prn"></select></div>
+      </div>
+      <p class="hint">Prix des filaments, électricité et profils d'imprimante se règlent dans <a href="#" data-goto="settings">⚙️ Réglages</a>.</p>
+    </section>
+
+    <section class="card" id="sim-result"></section>
   </div>
+
+  <!-- ═══ VUE RÉGLAGES ═══ -->
+  <div class="view" id="view-settings">
+    <section class="card">
+      <div class="card-title">⚡ Électricité</div>
+      <div class="field">
+        <label for="set-kwh">Tarif du kWh</label>
+        <div class="inp"><input type="number" id="set-kwh" data-scope="kwh" min="0" step="0.001" inputmode="decimal"><span class="unit">€/kWh</span></div>
+      </div>
+      <p class="hint">Référence : tarif réglementé EDF, option base.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-title">🧵 Filaments</div>
+      <div class="fil-head"><span>Filament</span><span>€/kg</span><span>Watts</span><span title="Filament abrasif (fibre) : use la buse plus vite">Abr.</span><span></span></div>
+      <div id="fil-list"></div>
+      <button class="soft-btn" data-act="add-fil">+ Ajouter un filament</button>
+      <p class="hint">Prix moyen au kilo et consommation électrique moyenne pendant l'impression. « Abr. » = filament abrasif (CF/GF), qui utilise la durée de vie de buse « abrasif » du profil d'imprimante.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-title">🖨️ Imprimantes</div>
+      <div id="prn-list"></div>
+      <button class="soft-btn" data-act="add-prn">+ Ajouter une imprimante</button>
+    </section>
+
+    <section class="card">
+      <div class="card-title">🔗 Codes-barres associés</div>
+      <div id="map-list"></div>
+      <p class="hint">Les associations se créent au premier scan de chaque boîte. Le scan caméra nécessite Chrome sur Android et la page en ligne (HTTPS).</p>
+    </section>
+
+    <section class="card danger-zone">
+      <div class="card-title">Réinitialiser</div>
+      <button class="mini-btn danger wide" data-act="reset-settings">Remettre les réglages par défaut</button>
+      <p class="hint">Ne touche pas au stock ni aux codes-barres. Catalogue du <span id="cat-date"></span>.</p>
+    </section>
+  </div>
+
+</main>
+
+<!-- ═══ NAVIGATION BAS ═══ -->
+<nav class="bottom-nav">
+  <button data-view="stock"><span class="n-em">📦</span>Stock</button>
+  <button data-view="sim"><span class="n-em">💶</span>Simulateur</button>
+  <button data-view="settings"><span class="n-em">⚙️</span>Réglages</button>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════ -->
-<!-- PAGE STOCK -->
-<!-- ═══════════════════════════════════════════════════ -->
-<div id="page-stock" class="page active">
-<div class="stock-inner">
+<div class="toast" id="toast"></div>
 
-  <div class="ph">
-    <div>
-      <div class="ph-title">Stock <span>Filaments</span></div>
-      <div class="ph-sub">Bambu Lab — Références officielles</div>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Réf. totales</div></div>
-    <div class="stat-card"><div class="stat-val" id="stat-stock">0</div><div class="stat-lbl">En stock</div></div>
-    <div class="stat-card"><div class="stat-val" id="stat-bobs">0</div><div class="stat-lbl">Bobines total</div></div>
-    <div class="stat-card"><div class="stat-val" id="stat-spools" style="color:var(--a2)">0</div><div class="stat-lbl">Bobines réutilisables</div></div>
-  </div>
-
-  <!-- SPOOL BANNER -->
-  <div class="spool-banner">
-    <div>
-      <div class="spool-label">Bobines réutilisables en stock</div>
-      <div class="spool-val" id="spool-display">0</div>
-    </div>
-    <div class="spool-ctrl">
-      <button onclick="adjSpool(-1)">−</button>
-      <input type="number" id="spool-input" value="0" min="0" max="99" onchange="setSpool(this.value)">
-      <button onclick="adjSpool(+1)">+</button>
-    </div>
-    <div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);max-width:220px;line-height:1.5">
-      Bobines Bambu Lab réutilisables disponibles pour les recharges (refill)
-    </div>
-  </div>
-
-  <!-- SCAN ACTIONS -->
-  <div class="scan-actions">
-    <button class="scan-btn scan-in" onclick="openScan('in')">📥 Réception (scan)</button>
-    <button class="scan-btn scan-out" onclick="openScan('out')">📤 Sortie (scan)</button>
-    <button class="scan-btn scan-mgr" onclick="openMapManager()">🔗 Codes-barres associés</button>
-    <div class="scan-note">// Scan caméra du code-barres de la boîte — nécessite HTTPS (fonctionne une fois hébergé sur GitHub Pages, pas en ouvrant le fichier en local)</div>
-  </div>
-
-  <!-- TOP BAR -->
-  <div class="stock-bar">
-    <span class="chip active" onclick="filterMat('all',this)">Tous</span>
-    <span class="chip" onclick="filterMat('PLA',this)">PLA</span>
-    <span class="chip a2" onclick="filterMat('PETG',this)">PETG</span>
-    <span class="chip a3" onclick="filterMat('ASA',this)">ASA</span>
-    <span class="chip a4" onclick="filterMat('TPU',this)">TPU</span>
-    <span class="chip a5" onclick="filterMat('PLA-CF',this)">PLA‑CF</span>
-    <div class="view-toggle">
-      <button class="vt-btn active" onclick="setView('table',this)" id="vt-table">≡ Tableau</button>
-      <button class="vt-btn" onclick="setView('swatches',this)" id="vt-swatches">⊞ Nuancier</button>
-    </div>
-  </div>
-
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
-    <div class="filter-vis">
-      <button class="vis-btn active" onclick="setVis('all',this)">Tous</button>
-      <button class="vis-btn" onclick="setVis('in',this)">✓ En stock</button>
-      <button class="vis-btn" onclick="setVis('out',this)">○ Non stocké</button>
-    </div>
-    <div class="search-wrap">
-      <input type="text" id="search-inp" placeholder="Rechercher..." oninput="renderAll()">
-    </div>
-  </div>
-
-  <!-- TABLE VIEW -->
-  <div id="view-table" class="shown">
-    <table class="stock-table" id="stock-tbl">
-      <thead>
-        <tr>
-          <th style="width:36px"></th>
-          <th>Couleur / Référence</th>
-          <th>Matière</th>
-          <th>Sous-type</th>
-          <th class="center">Qté bobines</th>
-          <th class="center">Lien</th>
-        </tr>
-      </thead>
-      <tbody id="tbl-body"></tbody>
-    </table>
-  </div>
-
-  <!-- SWATCH VIEW -->
-  <div id="view-swatches">
-    <div id="swatch-container"></div>
-  </div>
-
-</div>
-</div>
-
-<!-- SCAN OVERLAY (caméra) -->
+<!-- ═══ SCAN (caméra) ═══ -->
 <div id="scan-overlay" class="scan-overlay">
   <div class="scan-top" id="scan-top">
     <span id="scan-title">Réception de stock</span>
-    <button class="scan-close" onclick="closeScan()">✕</button>
+    <button class="scan-close" data-act="close-scan" aria-label="Fermer">✕</button>
   </div>
   <div class="scan-video-wrap">
     <video id="scan-video" playsinline muted></video>
     <div class="scan-frame"></div>
     <div id="scan-flash" class="scan-flash"></div>
-
-    <!-- Assign panel for unknown barcodes -->
     <div id="scan-assign" class="scan-assign">
       <div class="assign-card">
         <div class="assign-title">Code inconnu</div>
-        <div class="assign-code" id="assign-code-display"></div>
-        <div class="assign-sub-lbl">Ce code n'a jamais été scanné. Associe-le une fois à une référence — il sera reconnu automatiquement ensuite.</div>
-        <select id="assign-mat" onchange="onAssignMatChange()"><option value="">Matière…</option></select>
-        <select id="assign-sub" onchange="onAssignSubChange()"><option value="">Sous-type…</option></select>
-        <select id="assign-color"><option value="">Couleur…</option></select>
+        <div class="assign-code" id="assign-code"></div>
+        <div class="assign-sub">Associe-le une fois à une référence : il sera reconnu automatiquement ensuite.</div>
+        <select id="assign-mat"></select>
+        <select id="assign-sub"></select>
+        <select id="assign-color"></select>
         <div class="assign-actions">
-          <button onclick="skipAssign()">Ignorer</button>
-          <button class="primary" onclick="confirmAssign()">Associer & compter</button>
+          <button data-act="skip-assign">Ignorer</button>
+          <button class="primary" data-act="confirm-assign">Associer & compter</button>
         </div>
       </div>
     </div>
   </div>
-  <div id="scan-error" class="scan-error" style="display:none"></div>
+  <div id="scan-error" class="scan-error" hidden></div>
   <div class="scan-log-wrap">
     <div class="scan-log-title"><span>Scans de cette session</span><span id="scan-count">0</span></div>
     <div id="scan-log"></div>
   </div>
 </div>
 
-<!-- MAPPING MANAGER OVERLAY -->
-<div id="mapmgr-overlay" class="mapmgr-overlay">
-  <div class="mapmgr-card">
-    <div class="mapmgr-hdr">
-      <span>Codes-barres associés</span>
-      <button onclick="closeMapManager()">✕</button>
-    </div>
-    <div id="mapmgr-body" class="mapmgr-body"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════ -->
-<!-- PAGE COST -->
-<!-- ═══════════════════════════════════════════════════ -->
-<div id="page-cost" class="page">
-<div class="cost-inner">
-
-  <div class="ph" style="margin-bottom:24px">
-    <div>
-      <div class="ph-title">Simulateur <span>Coût</span></div>
-      <div class="ph-sub">Bambu Lab H2S + AMS 2 Pro · Calcul en temps réel</div>
-    </div>
-  </div>
-
-  <!-- IMPRESSION -->
-  <div class="section" id="sc-print">
-    <div class="sec-hdr" onclick="toggleSec('sc-print')">
-      <div class="sec-icon">🖨</div>
-      <span class="sec-title">Paramètres d'impression</span>
-      <span class="sec-cost" id="lbl-print">—</span>
-      <span class="chevron">▼</span>
-    </div>
-    <div class="sec-body">
-      <div class="field">
-        <label>Masse imprimée <span class="tip" title="Poids filament extrudé, pièce + supports">?</span></label>
-        <div class="inp-w"><input type="number" id="mass" value="32" min="1" max="5000" step="1" oninput="calc()"><span class="unit">g</span></div>
-      </div>
-      <div class="field">
-        <label>Durée d'impression</label>
-        <div class="inp-w">
-          <input type="number" id="hours" value="1" min="0" max="999" step="1" oninput="calc()" style="max-width:60px">
-          <span class="unit">h</span>
-          <input type="number" id="minutes" value="20" min="0" max="59" step="1" oninput="calc()" style="max-width:60px">
-          <span class="unit">min</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FILAMENT -->
-  <div class="section" id="sc-fil">
-    <div class="sec-hdr" onclick="toggleSec('sc-fil')">
-      <div class="sec-icon">🧵</div>
-      <span class="sec-title">Filament</span>
-      <span class="sec-cost" id="lbl-fil">—</span>
-      <span class="chevron">▼</span>
-    </div>
-    <div class="sec-body">
-      <div class="field">
-        <label>Type de filament</label>
-        <div class="inp-w">
-          <select id="filType" onchange="onFilType()">
-            <option value="pla">PLA</option>
-            <option value="pla-matte">PLA Matte</option>
-            <option value="pla-hf">PLA HF</option>
-            <option value="petg">PETG</option>
-            <option value="petg-hf">PETG HF</option>
-            <option value="asa">ASA</option>
-            <option value="tpu">TPU 95A HF</option>
-            <option value="pla-cf">PLA-CF</option>
-            <option value="petg-cf">PETG-CF</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>Prix du filament <span class="tip" title="Prix par kg TTC">?</span></label>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div class="slider-row">
-            <input type="range" id="fil-slider" min="5" max="80" value="12" step=".5" oninput="onFilSlider()">
-            <span class="range-val" id="fil-slabel">12.00 €/kg</span>
-          </div>
-          <div class="inp-w" style="max-width:160px">
-            <input type="number" id="filPrice" value="12" min="1" max="200" step=".5" oninput="onFilInput()">
-            <span class="unit">€/kg</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ELEC -->
-  <div class="section" id="sc-elec">
-    <div class="sec-hdr" onclick="toggleSec('sc-elec')">
-      <div class="sec-icon">⚡</div>
-      <span class="sec-title">Électricité</span>
-      <span class="sec-cost" id="lbl-elec">—</span>
-      <span class="chevron">▼</span>
-    </div>
-    <div class="sec-body">
-      <div class="field">
-        <label>Tarif kWh <span class="tip" title="TRV EDF France : 0,194 €/kWh — avril 2026">?</span></label>
-        <div class="inp-w"><input type="number" id="kwh" value="0.194" min=".05" max=".8" step=".001" oninput="calc()"><span class="unit">€/kWh</span></div>
-      </div>
-      <div class="field">
-        <label>Conso. calculée <span class="tip" title="Automatique selon le type de filament">?</span></label>
-        <div class="inp-w disabled"><input type="text" id="watts-disp" value="220 W" readonly></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- USURE -->
-  <div class="section collapsed" id="sc-wear">
-    <div class="sec-hdr" onclick="toggleSec('sc-wear')">
-      <div class="sec-icon">🔩</div>
-      <span class="sec-title">Usure & Consommables</span>
-      <span class="sec-cost" id="lbl-wear">—</span>
-      <span class="chevron">▼</span>
-    </div>
-    <div class="sec-body">
-      <div class="field"><label>Coût hotend/buse</label><div class="inp-w"><input type="number" id="nozzleCost" value="16" min="1" max="100" step=".5" oninput="calc()"><span class="unit">€</span></div></div>
-      <div class="field"><label>Durée de vie buse</label><div class="inp-w"><input type="number" id="nozzleLife" value="400" min="50" max="2000" step="50" oninput="calc()"><span class="unit">h</span></div></div>
-      <div class="field"><label>Coût plateau PEI</label><div class="inp-w"><input type="number" id="plateCost" value="40" min="5" max="200" step="1" oninput="calc()"><span class="unit">€</span></div></div>
-      <div class="field"><label>Durée de vie plateau</label><div class="inp-w"><input type="number" id="plateLife" value="700" min="50" max="5000" step="50" oninput="calc()"><span class="unit">prints</span></div></div>
-      <div class="field"><label>Filtres HEPA (coût)</label><div class="inp-w"><input type="number" id="filterCost" value="25" min="0" max="100" step="1" oninput="calc()"><span class="unit">€</span></div></div>
-      <div class="field"><label>Durée de vie filtre</label><div class="inp-w"><input type="number" id="filterLife" value="1000" min="100" max="5000" step="100" oninput="calc()"><span class="unit">h</span></div></div>
-      <div class="field"><label>Maintenance/an <span class="tip" title="Graisses, lubrifiants">?</span></label><div class="inp-w"><input type="number" id="maintCost" value="10" min="0" max="200" step="1" oninput="calc()"><span class="unit">€/an</span></div></div>
-      <div class="field"><label>Heures impression/an</label><div class="inp-w"><input type="number" id="hPerYear" value="1000" min="100" max="8760" step="50" oninput="calc()"><span class="unit">h/an</span></div></div>
-    </div>
-  </div>
-
-  <!-- AMORT -->
-  <div class="section" id="sc-amort">
-    <div class="sec-hdr" onclick="toggleSec('sc-amort')">
-      <div class="sec-icon">🏭</div>
-      <span class="sec-title">Amortissement machine</span>
-      <span class="sec-cost" id="lbl-amort">—</span>
-      <span class="chevron">▼</span>
-    </div>
-    <div class="sec-body">
-      <div class="field"><label>Coût machine TTC <span class="tip" title="H2S Combo + AMS 2 Pro : ~1500 €">?</span></label><div class="inp-w"><input type="number" id="machCost" value="1500" min="100" max="20000" step="50" oninput="calc()"><span class="unit">€</span></div></div>
-      <div class="field"><label>Durée amortissement</label><div class="inp-w"><input type="number" id="amortYears" value="3" min="1" max="10" step="1" oninput="calc()"><span class="unit">ans</span></div></div>
-    </div>
-  </div>
-
-  <!-- RESULT -->
-  <div class="result-wrap">
-    <div class="result-hdr">
-      <div class="rline"></div><h2>Résultat</h2><div class="rline"></div>
-    </div>
-    <div class="result-table">
-      <div id="r-rows"></div>
-      <div class="chart-wrap">
-        <svg width="110" height="110" viewBox="0 0 110 110" id="donut-svg">
-          <circle cx="55" cy="55" r="44" fill="none" stroke="#1e1f1d" stroke-width="16"/>
-          <g id="donut-arcs"></g>
-          <text x="55" y="51" text-anchor="middle" fill="#e8e9e4" font-family="Space Mono" font-size="10" font-weight="700" id="donut-tot"></text>
-          <text x="55" y="63" text-anchor="middle" fill="#6b6d66" font-family="Space Mono" font-size="6">TOTAL</text>
-        </svg>
-        <div class="legend" id="r-legend"></div>
-      </div>
-      <div class="r-total">
-        <div>
-          <div class="total-lbl">Coût de revient</div>
-          <div class="total-detail" id="r-detail"></div>
-        </div>
-        <div class="total-val" id="r-grand">—</div>
-      </div>
-    </div>
-
-    <div class="price-grid">
-      <div class="price-card"><div class="pc-lbl">Artisanal / Local</div><div class="pc-mult">× 2.0</div><div class="pc-val" id="p2x">—</div></div>
-      <div class="price-card"><div class="pc-lbl">Petite production</div><div class="pc-mult">× 2.5</div><div class="pc-val" id="p25x">—</div></div>
-      <div class="price-card"><div class="pc-lbl">Pro / SAV inclus</div><div class="pc-mult">× 3.0</div><div class="pc-val" id="p3x">—</div></div>
-    </div>
-    <div class="cost-note">// H2S + AMS 2 Pro · TRV 0,194 €/kWh · 1000h/an · Valeurs par défaut</div>
-  </div>
-</div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════ -->
 <script src="catalog.js"></script>
 <script src="app.js"></script>
 <script>
