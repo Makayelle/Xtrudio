@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════
 // Xtrudio — Catalogue filaments Bambu Lab + liens store officiels
 // Mettre à jour cette ligne quand le catalogue évolue :
-const CATALOG_UPDATED = '2026-10-12';
+const CATALOG_UPDATED = '2026-10-13';
 
 const STORE = {
   'PLA Basic':       'https://eu.store.bambulab.com/products/pla-basic-filament',
@@ -122,3 +122,87 @@ const CATALOG = [
     ]},
   ]},
 ];
+
+// ─── Fiches info par type de filament (bulle ⓘ dans l'onglet Stock) ───
+const SUBTYPE_INFO = {
+  'PLA Basic': {
+    usages: ['Prototypes et maquettes', 'Objets déco, figurines', "Pièces d'intérieur peu sollicitées"],
+    pros: ['Le plus facile à imprimer', 'Très peu de déformation (warping)', 'Détails précis, large choix de couleurs', 'Quasi sans odeur'],
+    cons: ['Ramollit vers 55-60 °C (voiture au soleil = déformation)', 'Plutôt cassant', "Vieillit mal en extérieur (UV, humidité)"],
+  },
+  'PLA Matte': {
+    usages: ['Objets déco et cadeaux', 'Figurines, cosplay', 'Pièces visibles au rendu soigné'],
+    pros: ['Aspect mat qui masque les lignes de couche', 'Rendu « premium » sans post-traitement', 'Aussi facile que le PLA Basic'],
+    cons: ['Un peu plus cassant que le PLA Basic', 'Mêmes limites en chaleur et en extérieur'],
+  },
+  'PLA HF': {
+    usages: ['Production en série', 'Grosses pièces à imprimer vite'],
+    pros: ['Haut débit : impressions nettement plus rapides', 'Qualité conservée à grande vitesse'],
+    cons: ['Mêmes limites mécaniques et thermiques que le PLA', 'Palette de couleurs plus réduite'],
+  },
+  'PLA Silk': {
+    usages: ['Vases, objets décoratifs', 'Cadeaux, trophées, pièces « bijou »'],
+    pros: ['Effet brillant soyeux / métallisé', 'Lignes de couche peu visibles'],
+    cons: ['Adhésion entre couches plus faible : pièces moins solides', 'Surplombs et petits détails moins nets', 'Plus sensible aux réglages'],
+  },
+  'PLA Sparkle': {
+    usages: ['Objets déco à effet pailleté', 'Boîtes, coques, cadeaux'],
+    pros: ['Paillettes qui masquent les lignes de couche', 'Effet visuel original sans peinture'],
+    cons: ["Rendu très dépendant de l'éclairage", 'Peu adapté aux pièces techniques'],
+  },
+  'PLA Tough+': {
+    usages: ['Pièces fonctionnelles légères', 'Gabarits, supports, clips'],
+    pros: ['Bien plus résistant aux chocs que le PLA Basic', 'Garde la facilité du PLA'],
+    cons: ['Plus cher', 'Tenue en chaleur toujours limitée (type PLA)'],
+  },
+  'PLA Translucent': {
+    usages: ['Abat-jour, lampes, veilleuses', 'Effets lumineux, diffuseurs'],
+    pros: ['Laisse passer et diffuse la lumière', 'Facile à imprimer comme un PLA'],
+    cons: ['Pas vraiment transparent (lignes visibles)', 'Les défauts internes se voient davantage'],
+  },
+  'PLA-CF': {
+    usages: ['Pièces rigides : gabarits, supports, drones', 'Pièces à bonne stabilité dimensionnelle'],
+    pros: ['Très rigide et léger', 'Bel aspect mat technique', 'Peu de déformation'],
+    cons: ['Abrasif : buse en acier trempé obligatoire', 'Plus cassant aux chocs', 'Plus cher'],
+  },
+  'PETG Basic': {
+    usages: ['Pièces fonctionnelles, supports muraux, outillage', 'Contenants, pièces exposées à l’humidité'],
+    pros: ['Plus solide et moins cassant que le PLA', 'Tient la chaleur (~70-80 °C)', 'Bonne résistance chimique et à l’humidité'],
+    cons: ['Tendance aux fils (stringing)', 'Accroche très fort au plateau (prévoir colle/agent démoulant)', 'Absorbe l’humidité : à stocker au sec'],
+  },
+  'PETG HF': {
+    usages: ['Production rapide de pièces fonctionnelles', 'Supports, fixations, petites séries'],
+    pros: ['Haut débit : impressions bien plus rapides', 'Propriétés du PETG conservées'],
+    cons: ['Mêmes défauts que le PETG (stringing, humidité)'],
+  },
+  'PETG-CF': {
+    usages: ['Pièces techniques rigides', 'Outillage, gabarits, pièces mécaniques'],
+    pros: ['Rigide avec peu de déformation', 'Finition mate qui masque les couches', 'Bonne résistance chimique'],
+    cons: ['Abrasif : buse en acier trempé obligatoire', 'À sécher avant impression', 'Plus cher'],
+  },
+  'ASA': {
+    usages: ['Pièces extérieures : jardin, voiture, boîtiers', 'Pièces exposées au soleil et à la chaleur'],
+    pros: ['Excellente résistance aux UV et intempéries', 'Tient la chaleur (~95-100 °C)', 'Couleurs stables dans le temps'],
+    cons: ['Émet des fumées : imprimante fermée + filtration/aération', 'Tendance au warping sur les grandes pièces', 'Moins facile que PLA/PETG'],
+  },
+  'ASA Aero': {
+    usages: ['Pièces très légères : aéromodélisme, drones'],
+    pros: ['Moussant : densité réduite, pièces légères', 'Garde la résistance UV de l’ASA'],
+    cons: ['Réglages spécifiques', 'Moins résistant mécaniquement', 'Finition de surface irrégulière'],
+  },
+  'ASA-CF': {
+    usages: ['Pièces techniques extérieures rigides'],
+    pros: ['Rigidité + résistance UV et chaleur', 'Très bonne stabilité dimensionnelle'],
+    cons: ['Abrasif : buse en acier trempé obligatoire', 'Fumées comme l’ASA', 'Plus cher'],
+  },
+  'TPU 95A HF': {
+    usages: ['Pièces souples : joints, pieds, protections', 'Coques, amortisseurs, poignées'],
+    pros: ['Flexible et absorbe les chocs', 'Très résistant à l’usure et à l’abrasion', 'Version HF plus rapide que les TPU classiques'],
+    cons: ['Impression plus lente qu’un PLA', 'Tendance aux fils', 'Absorbe l’humidité'],
+  },
+  'TPU 90A': {
+    usages: ['Pièces très souples : grips, joints, objets déformables'],
+    pros: ['Plus souple que le 95A', 'Très bonne élasticité et résistance à la déchirure'],
+    cons: ['Plus délicat à imprimer (filament mou)', 'Moins précis sur les détails', 'Lent à imprimer'],
+  },
+};
