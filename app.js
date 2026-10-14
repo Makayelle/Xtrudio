@@ -99,7 +99,6 @@ function switchView(v) {
   ui.view = v; saveUi();
   $$('.view').forEach(x => x.classList.toggle('active', x.id === 'view-' + v));
   $$('.bottom-nav button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-  $('#head-title').textContent = VIEW_TITLES[v];
   $('#btn-print').hidden = v !== 'stock';
   if (v === 'stock') renderStock();
   if (v === 'sim') renderSim();
@@ -178,6 +177,7 @@ function renderStockList() {
       html += `<section class="grp" style="--mc:${m.color}">
         <div class="grp-head">
           <span class="grp-name">${esc(s.name)}</span>
+          ${SUBTYPE_INFO[s.name] ? `<button class="grp-info" data-info="${esc(s.name)}" aria-label="Usages, avantages et inconvénients du ${esc(s.name)}">i</button>` : ''}
           <span class="grp-note">${s.note ? esc(s.note) : ''}</span>
           <span class="grp-count">${owned}/${s.colors.length}</span>
           <a class="grp-link" href="${link}" target="_blank" rel="noopener" aria-label="Voir ${esc(s.name)} sur le store Bambu Lab">↗</a>
@@ -224,6 +224,8 @@ function changeQty(key, delta) {
 }
 
 $('#view-stock').addEventListener('click', e => {
+  const inf = e.target.closest('.grp-info');
+  if (inf) { openInfo(inf.dataset.info); return; }
   const chip = e.target.closest('.chip');
   if (chip) { ui.mat = chip.dataset.mat; saveUi(); renderStock(); return; }
   const vb = e.target.closest('[data-vis]');
@@ -241,6 +243,27 @@ $('#view-stock').addEventListener('click', e => {
   if (sw && !sw.classList.contains('has')) changeQty(sw.dataset.k, 1);
 });
 $('#search').addEventListener('input', renderStockList);
+
+// ─── Fiche info par type de filament ─────────────────
+function openInfo(name) {
+  const d = SUBTYPE_INFO[name]; if (!d) return;
+  const m = CATALOG.find(x => x.subtypes.some(s => s.name === name));
+  const link = STORE[name] || 'https://eu.store.bambulab.com';
+  const list = arr => '<ul>' + arr.map(t => `<li>${esc(t)}</li>`).join('') + '</ul>';
+  $('#info-title').textContent = name;
+  $('#info-title').style.setProperty('--mc', m ? m.color : 'var(--accent)');
+  $('#info-body').innerHTML = `
+    <div class="info-sec use"><h4>🎯 Usages</h4>${list(d.usages)}</div>
+    <div class="info-sec pro"><h4>✅ Avantages</h4>${list(d.pros)}</div>
+    <div class="info-sec con"><h4>⚠️ Inconvénients</h4>${list(d.cons)}</div>
+    <a class="soft-btn info-link" href="${link}" target="_blank" rel="noopener">Voir sur le store Bambu Lab ↗</a>
+    <p class="hint">Indications générales : vérifie la fiche technique Bambu Lab pour les températures et réglages.</p>`;
+  $('#info-sheet').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeInfo() { $('#info-sheet').hidden = true; document.body.style.overflow = ''; }
+$('#info-sheet').addEventListener('click', e => { if (e.target.closest('[data-act="close-info"]')) closeInfo(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#info-sheet').hidden) closeInfo(); });
 
 // ══════════════════════════════════════════════════════
 // VUE SIMULATEUR
@@ -284,10 +307,13 @@ function calc() {
   const total = rows.reduce((a, r) => a + r.v, 0);
 
   box.innerHTML = `
-    <div class="res-top">
-      <div><div class="res-lbl">Coût de revient</div><div class="res-sub">${esc(f.name)} · ${dur.toFixed(2)} h · ${mass} g</div></div>
-      <div class="res-total">${eur(total)}</div>
+    <div class="card-title">Prix de vente conseillés</div>
+    <div class="prices">
+      <div class="price"><div class="p-lbl">Artisanal</div><div class="p-mult">× 2</div><div class="p-val">${eur(total * 2)}</div></div>
+      <div class="price"><div class="p-lbl">Petite prod.</div><div class="p-mult">× 2,5</div><div class="p-val">${eur(total * 2.5)}</div></div>
+      <div class="price"><div class="p-lbl">Pro / SAV</div><div class="p-mult">× 3</div><div class="p-val">${eur(total * 3)}</div></div>
     </div>
+    <div class="card-title mt-lg">Détail du coût de revient</div>
     ${rows.map((r, i) => {
       const pct = total > 0 ? r.v / total * 100 : 0;
       return `<div class="bk">
@@ -297,10 +323,9 @@ function calc() {
         <div class="bk-bar"><div class="bk-fill" style="width:${pct}%;background:${BK_COLORS[i]}"></div></div>
       </div>`;
     }).join('')}
-    <div class="prices">
-      <div class="price"><div class="p-lbl">Artisanal</div><div class="p-mult">× 2</div><div class="p-val">${eur(total * 2)}</div></div>
-      <div class="price"><div class="p-lbl">Petite prod.</div><div class="p-mult">× 2,5</div><div class="p-val">${eur(total * 2.5)}</div></div>
-      <div class="price"><div class="p-lbl">Pro / SAV</div><div class="p-mult">× 3</div><div class="p-val">${eur(total * 3)}</div></div>
+    <div class="res-bottom">
+      <div><div class="res-lbl">Coût de revient total</div><div class="res-sub">${esc(f.name)} · ${dur.toFixed(2)} h · ${mass} g</div></div>
+      <div class="res-total">${eur(total)}</div>
     </div>`;
 }
 
