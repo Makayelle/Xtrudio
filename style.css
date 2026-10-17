@@ -312,25 +312,35 @@ details.prn[open] .prn-chev{transform:rotate(90deg)}
 /* ─── IMPRESSION (état du stock) ─── */
 .print-meta{display:none}
 @media print{
-  @page{size:A4;margin:10mm}
+  @page{size:A4;margin:8mm}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  body{background:#fff;color:#111;padding:0}
+  html,body{background:#fff;color:#111;padding:0;min-height:0}
   body::before,body::after,.bottom-nav,.head-right,.spool-row,.scan-row,.filters,.toast,.scan-overlay,.grp-link,.grp-info,.sheet,.stepper button{display:none!important}
   .view{display:none!important}
   #view-stock{display:block!important;animation:none}
-  .app-head{position:static;background:none;border-bottom:1px solid #ccc;backdrop-filter:none;padding:0 0 8px}
-  .brand-name{color:#111} .brand-name em{color:#4a7400;text-shadow:none}
-  .brand svg{filter:none}
-  main{max-width:none;padding:8px 0 0}
-  .print-meta{display:block;font-family:var(--mono);font-size:.62rem;color:#555;margin-bottom:8px}
+  .app-head{position:static;background:none;border-bottom:1px solid #ccc;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0 0 4px}
+  .brand svg{width:20px;height:20px;filter:none}
+  .brand-name{color:#111;font-size:1rem} .brand-name em{color:#4a7400;text-shadow:none}
+  main{max-width:none;margin:0;padding:4px 0 0}
+  .print-meta{display:block;font-family:var(--mono);font-size:.6rem;color:#555;margin-bottom:6px}
+  .stats{gap:6px;margin-bottom:8px;break-inside:avoid}
+  .stat{padding:5px 8px}
   .stat,.grp,.grp-head,.frow,.sw{background:#fff!important;border-color:#ccc!important;box-shadow:none!important}
-  .grp{border-left-width:3px!important;border-left-color:var(--mc)!important;break-inside:auto}
-  .grp-head{break-after:avoid}
-  .frow{break-inside:avoid;padding:3px 10px}
-  .stat-val{color:#111;text-shadow:none}
+  .stat-val{color:#111;text-shadow:none;font-size:1rem}
+  /* Groupes : peuvent se couper entre deux pages, mais jamais une ligne ou une pastille */
+  .grp{overflow:visible;border-radius:6px;margin-bottom:6px;border-left-width:3px!important;border-left-color:var(--mc)!important;break-inside:auto}
+  .grp-head{padding:4px 8px;border-radius:6px 6px 0 0;break-inside:avoid;break-after:avoid}
+  .frow{break-inside:avoid;padding:3px 8px}
   .stat-lbl,.grp-note,.grp-count,.fhex{color:#666}
   .grp-name,.fname,.sw-name{color:#111}
   .stepper{background:none!important;border:none!important;padding:0}
   .stepper .val{color:#111!important;text-shadow:none!important;font-weight:700}
-  .frow.has .stepper .val::after{content:' bob.';font-weight:400;font-size:.55rem}
+  .frow.has .stepper .val::after,.sw.has .stepper .val::after{content:' bob.';font-weight:400;font-size:.55rem}
+  /* Nuancier : grandes pastilles, grille serrée */
+  .sw-grid{display:flex;flex-wrap:wrap;gap:4px;padding:5px}
+  .sw{flex:0 0 calc((100% - 5 * 4px) / 6);padding:6px 3px 4px;border-width:1px!important;border-radius:6px;break-inside:avoid;page-break-inside:avoid}
+  .sw .dot{width:64px;height:64px;margin:0 auto 4px;box-shadow:none}
+  .sw-name{min-height:0;font-size:.6rem;line-height:1.2}
+  .sw .stepper{margin-top:2px;padding:0}
+  .sw .stepper .val{font-size:.65rem;min-width:0}
 }
