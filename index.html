@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -129,6 +129,12 @@
       <p class="hint">Référence : tarif réglementé EDF, option base.</p>
     </section>
 
+    <section class="card">
+      <div class="card-title">🖨️ Imprimantes</div>
+      <div id="prn-list"></div>
+      <button class="soft-btn" data-act="add-prn">+ Ajouter une imprimante</button>
+    </section>
+
     <details class="card fold" id="fold-fil">
       <summary class="fold-sum"><span>🧵 Types de filaments</span><span class="fold-count" id="fil-count"></span><span class="fold-chev">▶</span></summary>
       <div class="fold-body">
@@ -139,12 +145,6 @@
         <p class="hint">Prix indicatifs du store Bambu Lab EU (bobine à l'unité, ramenés au kilo, hors promotions et lots) : remplace-les par ce que tu paies réellement. Watts estimés pour la H2S + AMS selon la température du matériau. « Abr. » = filament abrasif (CF/GF), qui utilise la durée de vie de buse « abrasif » du profil d'imprimante.</p>
       </div>
     </details>
-
-    <section class="card">
-      <div class="card-title">🖨️ Imprimantes</div>
-      <div id="prn-list"></div>
-      <button class="soft-btn" data-act="add-prn">+ Ajouter une imprimante</button>
-    </section>
 
     <details class="card fold" id="fold-map">
       <summary class="fold-sum"><span>🔗 Codes-barres associés</span><span class="fold-count" id="map-count"></span><span class="fold-chev">▶</span></summary>
@@ -217,8 +217,8 @@
   </div>
 </div>
 
-<script src="catalog.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="catalog.js?v=10"></script>
+<script src="app.js?v=10"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
