@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -130,9 +130,9 @@
     </section>
 
     <details class="card fold" id="fold-fil">
-      <summary class="fold-sum"><span>🧵 Filaments</span><span class="fold-count" id="fil-count"></span><span class="fold-chev">▶</span></summary>
+      <summary class="fold-sum"><span>🧵 Types de filaments</span><span class="fold-count" id="fil-count"></span><span class="fold-chev">▶</span></summary>
       <div class="fold-body">
-        <input class="search" id="fil-search" type="search" placeholder="Rechercher un filament…" autocomplete="off">
+        <input class="search" id="fil-search" type="search" placeholder="Rechercher un type de filament…" autocomplete="off">
         <div class="fil-head"><span>Filament</span><span>€/kg</span><span>Watts</span><span title="Filament abrasif (fibre) : use la buse plus vite">Abr.</span><span></span></div>
         <div id="fil-list"></div>
         <button class="soft-btn" data-act="add-fil">+ Ajouter un filament</button>
@@ -217,8 +217,8 @@
   </div>
 </div>
 
-<script src="catalog.js"></script>
-<script src="app.js"></script>
+<script src="catalog.js?v=8"></script>
+<script src="app.js?v=8"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

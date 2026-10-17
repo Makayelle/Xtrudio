@@ -183,15 +183,16 @@ main{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:14px 14px
 
 /* ─── RÉGLAGES ─── */
 details.fold{padding:0}
-.fold-sum{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;
+details.fold > summary{list-style:none}
+details.fold > summary::-webkit-details-marker{display:none}
+details.fold > summary::marker{content:''}
+.fold-sum{display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;
   font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.fold-sum::-webkit-details-marker{display:none}
-.fold-sum span:first-child{flex:1}
-.fold-count{font-size:.55rem;letter-spacing:.04em;text-transform:none;color:var(--accent);background:rgba(200,240,58,.08);border:1px solid rgba(200,240,58,.25);border-radius:var(--pill);padding:3px 9px}
-.fold-chev{font-size:.6rem;transition:transform .2s}
+.fold-sum span:first-child{flex:1;min-width:0}
+.fold-count{flex:none;font-size:.55rem;letter-spacing:.04em;text-transform:none;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:var(--pill);padding:3px 9px}
+.fold-count:empty{display:none}
+.fold-chev{flex:none;color:var(--muted);opacity:.6;font-size:.6rem;transition:transform .2s}
 details.fold[open] .fold-chev{transform:rotate(90deg)}
-details.fold[open] .fold-sum{color:var(--text)}
-.fold-body{padding:0 14px 14px}
 .fold-body > .search{margin-bottom:10px}
 .fil-head,.fil-row{display:grid;grid-template-columns:1fr 60px 56px 34px 26px;gap:6px;align-items:center}
 .fil-head{font-family:var(--mono);font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);padding-bottom:6px;border-bottom:1px solid var(--border)}
@@ -209,9 +210,10 @@ details.prn{background:var(--s2);border:1px solid var(--border);border-radius:va
 details.prn[open]{border-color:var(--border2)}
 details.prn summary{list-style:none;display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:pointer}
 details.prn summary::-webkit-details-marker{display:none}
+details.prn summary::marker{content:''}
 .prn-name{font-weight:800;font-size:.8rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prn-meta{font-family:var(--mono);font-size:.55rem;color:var(--muted);flex:none}
-.prn-chev{color:var(--muted);font-size:.6rem;transition:transform .2s}
+.prn-chev{color:var(--muted);opacity:.6;font-size:.6rem;transition:transform .2s}
 details.prn[open] .prn-chev{transform:rotate(90deg)}
 .prn-body{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 12px 12px}
 .prn-body .full{grid-column:1/-1}
