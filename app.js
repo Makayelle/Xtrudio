@@ -10,7 +10,8 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const uid = () => Math.random().toString(36).slice(2, 9);
-const eur = (v, d = 2) => (isFinite(v) ? v : 0).toFixed(d).replace('.', ',') + ' €';
+const dec = (v, d = 2) => (isFinite(v) ? v : 0).toFixed(d).replace('.', ',');
+const eur = (v, d = 2) => dec(v, d) + ' €';
 const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; };
 
 function lsGet(k, def) { try { const v = localStorage.getItem(k); return v === null ? def : v; } catch (e) { return def; } }
@@ -357,7 +358,7 @@ function calc() {
 
   const rows = [
     { ic: '🧵', label: 'Filament',      d: `${mass} g × ${eur(f.price)}/kg`,                     v: mass / 1000 * num(f.price) },
-    { ic: '⚡', label: 'Électricité',   d: `${f.watts} W × ${dur.toFixed(2)} h`,                  v: num(f.watts) / 1000 * dur * num(S.kwh) },
+    { ic: '⚡', label: 'Électricité',   d: `${f.watts} W × ${dec(dur)} h`,                         v: num(f.watts) / 1000 * dur * num(S.kwh) },
     { ic: '🔩', label: 'Buse',          d: `${p.nozzleCost} € / ${nozLife} h${f.abrasive ? ' (abrasif)' : ''}`, v: nozLife > 0 ? num(p.nozzleCost) / nozLife * dur : 0 },
     { ic: '🛏', label: 'Plateau',       d: `${p.plateCost} € / ${p.plateLife} impr.`,              v: num(p.plateLife) > 0 ? num(p.plateCost) / num(p.plateLife) : 0 },
     { ic: '🌬', label: 'Filtre',        d: `${p.filterCost} € / ${p.filterLife} h`,                v: num(p.filterLife) > 0 ? num(p.filterCost) / num(p.filterLife) * dur : 0 },
@@ -384,7 +385,7 @@ function calc() {
       </div>`;
     }).join('')}
     <div class="res-bottom">
-      <div><div class="res-lbl">Coût de revient total</div><div class="res-sub">${esc(f.name)} · ${dur.toFixed(2)} h · ${mass} g</div></div>
+      <div><div class="res-lbl">Coût de revient total</div><div class="res-sub">${esc(f.name)} · ${dec(dur)} h · ${mass} g</div></div>
       <div class="res-total">${eur(total)}</div>
     </div>`;
 }

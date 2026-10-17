@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════════════════
 // Xtrudio — Catalogue filaments Bambu Lab + liens store officiels
 // Mettre à jour cette ligne quand le catalogue évolue :
-const CATALOG_UPDATED = '2026-10-16';
+const CATALOG_UPDATED = '2026-10-17';
 
 const STORE = {
   'PLA Basic': 'https://eu.store.bambulab.com/products/pla-basic-filament',
@@ -16,7 +16,7 @@ const STORE = {
   'PETG HF': 'https://eu.store.bambulab.com/products/petg-hf',
   'PETG-CF': 'https://eu.store.bambulab.com/products/petg-cf',
   'ASA': 'https://eu.store.bambulab.com/products/asa-filament',
-  'ASA Aero': 'https://eu.store.bambulab.com/products/asa-filament',
+  'ASA Aero': 'https://eu.store.bambulab.com/products/asa-aero',
   'ASA-CF': 'https://eu.store.bambulab.com/products/asa-cf',
   'TPU 95A HF': 'https://eu.store.bambulab.com/products/tpu-95a-hf',
   'TPU 90A': 'https://eu.store.bambulab.com/products/tpu-for-ams',
