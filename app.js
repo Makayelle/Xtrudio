@@ -54,12 +54,63 @@ const DEFAULT_SETTINGS = {
   sim: { mass: 32, h: 1, min: 20, filId: 'pla-basic', prnId: 'h2s' },
 };
 
+// Filaments ajoutés en v6 : prix public du store Bambu Lab EU (bobine à l'unité, ramené au kg),
+// consommation estimée pour H2S + AMS selon les températures du matériau.
+const EXTRA_FILAMENTS_V6 = [
+  { id: 'pla-lite',        name: 'PLA Lite',             price: 20,  watts: 220, abrasive: false },
+  { id: 'pla-silkplus',    name: 'PLA Silk+',            price: 26,  watts: 220, abrasive: false },
+  { id: 'pla-tough',       name: 'PLA Tough',            price: 25,  watts: 220, abrasive: false },
+  { id: 'pla-toughplus',   name: 'PLA Tough+',           price: 27,  watts: 220, abrasive: false },
+  { id: 'pla-translucent', name: 'PLA Translucent',      price: 28,  watts: 220, abrasive: false },
+  { id: 'pla-metal',       name: 'PLA Metal',            price: 28,  watts: 220, abrasive: false },
+  { id: 'pla-marble',      name: 'PLA Marble',           price: 28,  watts: 220, abrasive: false },
+  { id: 'pla-galaxy',      name: 'PLA Galaxy',           price: 28,  watts: 220, abrasive: false },
+  { id: 'pla-wood',        name: 'PLA Wood',             price: 28,  watts: 220, abrasive: false },
+  { id: 'pla-glow',        name: 'PLA Glow',             price: 28,  watts: 220, abrasive: true  },
+  { id: 'pla-pure',        name: 'PLA Pure',             price: 23,  watts: 220, abrasive: false },
+  { id: 'pla-dynamic',     name: 'PLA Dynamic',          price: 28,  watts: 220, abrasive: false },
+  { id: 'pla-aero',        name: 'PLA Aero',             price: 48,  watts: 220, abrasive: false },
+  { id: 'petg-matte',      name: 'PETG Matte',           price: 23,  watts: 200, abrasive: false },
+  { id: 'petg-translucent',name: 'PETG Translucent',     price: 23,  watts: 200, abrasive: false },
+  { id: 'asa-aero',        name: 'ASA Aero',             price: 50,  watts: 280, abrasive: false },
+  { id: 'asa-cf',          name: 'ASA-CF',               price: 39,  watts: 280, abrasive: true  },
+  { id: 'tpu-95a-hf',      name: 'TPU 95A HF',           price: 35,  watts: 200, abrasive: false },
+  { id: 'tpu-95a',         name: 'TPU 95A',              price: 35,  watts: 200, abrasive: false },
+  { id: 'tpu-90a',         name: 'TPU 90A',              price: 44,  watts: 200, abrasive: false },
+  { id: 'tpu-85a',         name: 'TPU 85A',              price: 44,  watts: 200, abrasive: false },
+  { id: 'tpu-ams',         name: 'TPU for AMS',          price: 40,  watts: 200, abrasive: false },
+  { id: 'abs',             name: 'ABS',                  price: 23,  watts: 280, abrasive: false },
+  { id: 'abs-gf',          name: 'ABS-GF',               price: 32,  watts: 280, abrasive: true  },
+  { id: 'pc',              name: 'PC',                   price: 43,  watts: 330, abrasive: false },
+  { id: 'pc-fr',           name: 'PC FR',                price: 57,  watts: 330, abrasive: false },
+  { id: 'pa6-cf',          name: 'PA6-CF',               price: 90,  watts: 330, abrasive: true  },
+  { id: 'pa6-gf',          name: 'PA6-GF',               price: 63,  watts: 330, abrasive: true  },
+  { id: 'paht-cf',         name: 'PAHT-CF',              price: 108, watts: 330, abrasive: true  },
+  { id: 'pet-cf',          name: 'PET-CF',               price: 98,  watts: 300, abrasive: true  },
+  { id: 'ppa-cf',          name: 'PPA-CF',               price: 208, watts: 350, abrasive: true  },
+  { id: 'pps-cf',          name: 'PPS-CF',               price: 179, watts: 350, abrasive: true  },
+  { id: 'pva',             name: 'PVA (support soluble)', price: 84, watts: 220, abrasive: false },
+  { id: 'sup-pla',         name: 'Support for PLA',      price: 52,  watts: 220, abrasive: false },
+  { id: 'sup-pla-petg',    name: 'Support for PLA/PETG', price: 74,  watts: 210, abrasive: false },
+  { id: 'sup-abs',         name: 'Support for ABS',      price: 34,  watts: 280, abrasive: false },
+  { id: 'sup-pa-pet',      name: 'Support for PA/PET',   price: 84,  watts: 330, abrasive: false },
+];
+DEFAULT_SETTINGS.filaments.push(...EXTRA_FILAMENTS_V6.map(f => Object.assign({}, f)));
+DEFAULT_SETTINGS.filVersion = 6;
+
 function loadSettings() {
   try {
     const raw = JSON.parse(lsGet(SETTINGS_KEY, 'null'));
     if (raw && Array.isArray(raw.filaments) && Array.isArray(raw.printers)) {
       const s = Object.assign(clone(DEFAULT_SETTINGS), raw);
       s.sim = Object.assign(clone(DEFAULT_SETTINGS.sim), raw.sim || {});
+      if (!(raw.filVersion >= 6)) {
+        // Ajout des nouveaux types sans toucher aux filaments déjà réglés par l'utilisateur
+        s.filaments = raw.filaments.slice();
+        EXTRA_FILAMENTS_V6.forEach(f => { if (!s.filaments.some(x => x.id === f.id)) s.filaments.push(Object.assign({}, f)); });
+        s.filVersion = 6;
+        lsSet(SETTINGS_KEY, JSON.stringify(s));
+      }
       return s;
     }
   } catch (e) {}
