@@ -416,14 +416,17 @@ const PRN_FIELDS = [
 ];
 
 function renderFilaments() {
-  $('#fil-list').innerHTML = S.filaments.map(f => `
+  const q = ($('#fil-search').value || '').trim().toLowerCase();
+  const list = q ? S.filaments.filter(f => f.name.toLowerCase().includes(q)) : S.filaments;
+  $('#fil-count').textContent = S.filaments.length;
+  $('#fil-list').innerHTML = list.map(f => `
     <div class="fil-row" data-id="${f.id}">
       <input class="s-in name" data-scope="fil" data-id="${f.id}" data-key="name" value="${esc(f.name)}" aria-label="Nom du filament">
       <input class="s-in" type="number" step="0.5" min="0" inputmode="decimal" data-scope="fil" data-id="${f.id}" data-key="price" value="${f.price}" aria-label="Prix au kilo">
       <input class="s-in" type="number" step="5" min="0" inputmode="numeric" data-scope="fil" data-id="${f.id}" data-key="watts" value="${f.watts}" aria-label="Consommation en watts">
       <button class="abr-btn${f.abrasive ? ' on' : ''}" data-act="toggle-abr" data-id="${f.id}" aria-label="Abrasif">${f.abrasive ? 'OUI' : '—'}</button>
       <button class="del-btn" data-act="del-fil" data-id="${f.id}" aria-label="Supprimer">✕</button>
-    </div>`).join('') || '<div class="map-empty">Aucun filament.</div>';
+    </div>`).join('') || `<div class="map-empty">${q ? 'Aucun filament ne correspond.' : 'Aucun filament.'}</div>`;
 }
 
 function prnMeta(p) { return `${num(p.machCost)} € · ${num(p.amortYears)} ans`; }
@@ -450,6 +453,7 @@ function renderPrinters(openId) {
 
 function renderBarcodes() {
   const map = getBarcodeMap(); const codes = Object.keys(map);
+  $('#map-count').textContent = codes.length;
   $('#map-list').innerHTML = codes.length ? codes.map(code => `
     <div class="map-row">
       <span class="map-code">${esc(code)}</span>
@@ -465,6 +469,8 @@ function renderSettings(openPrnId) {
   renderBarcodes();
   $('#cat-date').textContent = new Date(CATALOG_UPDATED).toLocaleDateString('fr-FR');
 }
+
+$('#fil-search').addEventListener('input', renderFilaments);
 
 $('#view-settings').addEventListener('input', e => {
   const el = e.target, sc = el.dataset.scope;
@@ -499,6 +505,7 @@ $('#view-settings').addEventListener('click', e => {
     }
     case 'add-fil': {
       const nid = 'f-' + uid();
+      $('#fold-fil').open = true; $('#fil-search').value = '';
       S.filaments.push({ id: nid, name: 'Nouveau filament', price: 15, watts: 220, abrasive: false });
       saveSettings(); renderFilaments();
       const inp = $(`.fil-row[data-id="${nid}"] .name`); if (inp) { inp.focus(); inp.select(); }

@@ -129,14 +129,16 @@
       <p class="hint">Référence : tarif réglementé EDF, option base.</p>
     </section>
 
-    <section class="card">
-      <div class="card-title">🧵 Filaments</div>
-      <div class="fil-head"><span>Filament</span><span>€/kg</span><span>Watts</span><span title="Filament abrasif (fibre) : use la buse plus vite">Abr.</span><span></span></div>
-      <div id="fil-list"></div>
-      <button class="soft-btn" data-act="add-fil">+ Ajouter un filament</button>
-      <p class="hint">Prix indicatifs du store Bambu Lab EU (bobine à l'unité, ramenés au kilo, hors promotions et lots) : remplace-les par ce que tu paies réellement. Watts estimés pour la H2S + AMS selon la température du matériau.</p>
-      <p class="hint">Prix moyen au kilo et consommation électrique moyenne pendant l'impression. « Abr. » = filament abrasif (CF/GF), qui utilise la durée de vie de buse « abrasif » du profil d'imprimante.</p>
-    </section>
+    <details class="card fold" id="fold-fil">
+      <summary class="fold-sum"><span>🧵 Filaments</span><span class="fold-count" id="fil-count"></span><span class="fold-chev">▶</span></summary>
+      <div class="fold-body">
+        <input class="search" id="fil-search" type="search" placeholder="Rechercher un filament…" autocomplete="off">
+        <div class="fil-head"><span>Filament</span><span>€/kg</span><span>Watts</span><span title="Filament abrasif (fibre) : use la buse plus vite">Abr.</span><span></span></div>
+        <div id="fil-list"></div>
+        <button class="soft-btn" data-act="add-fil">+ Ajouter un filament</button>
+        <p class="hint">Prix indicatifs du store Bambu Lab EU (bobine à l'unité, ramenés au kilo, hors promotions et lots) : remplace-les par ce que tu paies réellement. Watts estimés pour la H2S + AMS selon la température du matériau. « Abr. » = filament abrasif (CF/GF), qui utilise la durée de vie de buse « abrasif » du profil d'imprimante.</p>
+      </div>
+    </details>
 
     <section class="card">
       <div class="card-title">🖨️ Imprimantes</div>
@@ -144,11 +146,13 @@
       <button class="soft-btn" data-act="add-prn">+ Ajouter une imprimante</button>
     </section>
 
-    <section class="card">
-      <div class="card-title">🔗 Codes-barres associés</div>
-      <div id="map-list"></div>
-      <p class="hint">Les associations se créent au premier scan de chaque boîte. Le scan caméra nécessite Chrome sur Android et la page en ligne (HTTPS).</p>
-    </section>
+    <details class="card fold" id="fold-map">
+      <summary class="fold-sum"><span>🔗 Codes-barres associés</span><span class="fold-count" id="map-count"></span><span class="fold-chev">▶</span></summary>
+      <div class="fold-body">
+        <div id="map-list"></div>
+        <p class="hint">Les associations se créent au premier scan de chaque boîte. Le scan caméra nécessite Chrome sur Android et la page en ligne (HTTPS).</p>
+      </div>
+    </details>
 
     <section class="card danger-zone">
       <div class="card-title">Réinitialiser</div>
