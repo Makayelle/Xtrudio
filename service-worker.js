@@ -2,14 +2,14 @@
 // Seules les données du catalogue, du stock et le calcul de coût sont concernés :
 // le scan caméra nécessite toujours une page déjà chargée en HTTPS (voir note dans l'app).
 
-const CACHE_NAME = 'xtrudio-cache-v11';
+const CACHE_NAME = 'xtrudio-cache-v12';
 
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=11',
-  './catalog.js?v=11',
-  './app.js?v=11',
+  './style.css?v=12',
+  './catalog.js?v=12',
+  './app.js?v=12',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
