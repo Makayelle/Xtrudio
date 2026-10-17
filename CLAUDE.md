@@ -18,6 +18,7 @@ Site 100 % statique : HTML, CSS et JavaScript « vanilla », **sans framework, s
 | `service-worker.js` | Cache hors-ligne (stale-while-revalidate) |
 | `manifest.json` | PWA installable |
 | `icons/` | Icônes de l'app (hexagone régulier néon) |
+| `tests/check.js` | Script de vérification unique (voir « Avant de proposer une modification ») — ne fait pas partie de l'app |
 
 ## Règles impératives
 
@@ -47,7 +48,7 @@ Version actuelle : **12**.
 - Prix indicatifs : store Bambu Lab EU (https://eu.store.bambulab.com), prix d'une bobine à l'unité ramené au kilo, en tenant compte du poids réel de la bobine.
 - Chaque nouveau type doit avoir sa fiche dans `SUBTYPE_INFO` et un lien dans `STORE` (recherche du store si pas de page produit connue).
 - Mettre à jour `CATALOG_UPDATED`.
-- Après une fusion, vérifier par un script que **toutes les entrées existantes sont intactes** (mêmes noms, mêmes `hex`, mêmes `f`).
+- Après une fusion, vérifier que **toutes les entrées existantes sont intactes** (mêmes noms, mêmes `hex`, mêmes `f`) : c'est fait par `node tests/check.js`.
 
 ## Design « Néon Atelier »
 
@@ -70,8 +71,24 @@ Version actuelle : **12**.
 
 ## Avant de proposer une modification
 
-1. `node --check` sur chaque fichier `.js` modifié.
-2. Ouvrir la page dans un navigateur à 390 × 844 px : aucune erreur console, aucun débordement horizontal, les trois onglets s'affichent.
-3. Si le stock ou les réglages sont touchés : tester avec des données existantes dans le `localStorage` et vérifier qu'elles sont conservées.
-4. Monter la version (règle 2).
-5. Résumer les changements en français dans la pull request.
+**Ne pas réécrire de tests à chaque demande : lancer le script du projet.**
+
+```bash
+node tests/check.js            # tout : statique + navigateur 390 × 844 + PDF d'impression (~5 s)
+node tests/check.js --static   # sans navigateur (syntaxe, version, catalogue)
+node tests/check.js --base REF # référence de comparaison (défaut : origin/main, faire `git fetch` avant)
+```
+
+Il vérifie, et sort en erreur (code 1) au moindre problème :
+1. **Syntaxe** : `node --check` sur tous les `.js`.
+2. **Version** (règle 2) : même numéro dans `index.html`, `service-worker.js` et ce fichier ; numéro monté si un fichier de l'app a changé par rapport à `origin/main`.
+3. **Catalogue** (règles 1 et 3) : chaque type a son lien `STORE` et sa fiche `SUBTYPE_INFO`, hex et finitions `f` valides, pas de doublon ni de collision de clé de stock ; **aucune entrée de `origin/main` supprimée, renommée ou modifiée**.
+4. **Navigateur** (Playwright global + Chromium de l'environnement, serveur local intégré) avec des données « existantes » dans le `localStorage` : les 3 onglets s'affichent sans débordement horizontal, bouton 🖨️ seulement dans Stock, nuancier, fiche info, association d'un code-barres (couleurs triées, bobine comptée), **stock et réglages conservés** après migration, aucune erreur console, PDF A4 du nuancier et de la liste sans élément coupé entre deux pages.
+
+Captures (`stock.png`, `sim.png`, `settings.png`, `swatch.png`) et PDF (`print-swatch.pdf`, `print-list.pdf`) sont écrits dans `tests/out/` (ignoré par git) : les regarder seulement si le changement est visuel.
+
+Quand une nouvelle fonctionnalité est ajoutée, **compléter `tests/check.js`** avec son contrôle plutôt que d'écrire un test jetable.
+
+Ensuite :
+- Monter la version (règle 2) si un fichier de l'app a changé — `tests/`, `CLAUDE.md` et `.gitignore` seuls n'en ont pas besoin.
+- Résumer les changements en français dans la pull request, en indiquant le résultat du script.
