@@ -643,7 +643,9 @@ $('#assign-mat').addEventListener('change', e => {
 });
 $('#assign-sub').addEventListener('change', e => {
   const m = CATALOG[$('#assign-mat').value]; const s = m && m.subtypes[e.target.value];
-  $('#assign-color').innerHTML = '<option value="">Couleur…</option>' + (s ? s.colors.map((c, i) => `<option value="${i}">${esc(c.n)}</option>`).join('') : '');
+  // Couleurs triées par ordre alphabétique ; la valeur reste l'index dans le catalogue
+  const sorted = s ? s.colors.map((c, i) => ({ n: c.n, i })).sort((a, b) => a.n.localeCompare(b.n, 'fr', { sensitivity: 'base' })) : [];
+  $('#assign-color').innerHTML = '<option value="">Couleur…</option>' + sorted.map(c => `<option value="${c.i}">${esc(c.n)}</option>`).join('');
 });
 $('#scan-overlay').addEventListener('click', e => {
   const b = e.target.closest('[data-act]');

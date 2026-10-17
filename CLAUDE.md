@@ -38,7 +38,7 @@ Sinon le téléphone mélange anciens et nouveaux fichiers en cache. À chaque c
 - dans `index.html` : `style.css?v=N`, `catalog.js?v=N`, `app.js?v=N`
 - dans `service-worker.js` : `CACHE_NAME = 'xtrudio-cache-vN'` et les mêmes `?v=N` dans `APP_SHELL`
 
-Version actuelle : **10**.
+Version actuelle : **11**.
 
 ### 3. Mettre à jour le catalogue à partir des sources officielles
 - Couleurs et codes hexa : fichier officiel de Bambu Studio
