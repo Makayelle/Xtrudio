@@ -73,6 +73,9 @@ function checkVersion() {
     if (changed) check(n > b, `version montée par rapport à ${BASE} (${b} → ${n})`, `fichiers de l'app modifiés mais version non montée (${BASE} : ${b}, actuelle : ${n})`);
     else info(`aucun fichier de l'app modifié par rapport à ${BASE} (version ${n})`);
   } else info(`${BASE} introuvable : comparaison de version ignorée`);
+  const log = fs.existsSync(path.join(ROOT, 'CHANGELOG.md')) ? read('CHANGELOG.md') : '';
+  check(new RegExp(`^## v${n} — `, 'm').test(log), `CHANGELOG.md : entrée « ## v${n} » présente`,
+    `CHANGELOG.md : entrée « ## v${n} — JJ/MM/AAAA · titre » manquante`);
   return n;
 }
 
