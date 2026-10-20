@@ -18,6 +18,7 @@ Site 100 % statique : HTML, CSS et JavaScript « vanilla », **sans framework, s
 | `service-worker.js` | Cache hors-ligne (stale-while-revalidate) |
 | `manifest.json` | PWA installable |
 | `icons/` | Icônes de l'app (hexagone régulier néon) |
+| `CHANGELOG.md` | Journal des versions et des choix de l'application (voir règle 4) |
 | `tests/check.js` | Script de vérification unique (voir « Avant de proposer une modification ») — ne fait pas partie de l'app |
 
 ## Règles impératives
@@ -50,6 +51,14 @@ Version actuelle : **12**.
 - Mettre à jour `CATALOG_UPDATED`.
 - Après une fusion, vérifier que **toutes les entrées existantes sont intactes** (mêmes noms, mêmes `hex`, mêmes `f`) : c'est fait par `node tests/check.js`.
 
+### 4. Tenir le journal `CHANGELOG.md`
+À chaque livraison, ajouter une entrée **en haut** du fichier, en français simple :
+- titre `## vN — JJ/MM/AAAA · sujet` (même N que la règle 2) ; pour un changement sans nouvelle version (outillage, documentation) : `## Outillage — JJ/MM/AAAA (pas de nouvelle version de l'app)` ;
+- lignes **Ajouté / Modifié / Corrigé / Retiré** pour ce qui change côté utilisateur ;
+- ligne **Choix** quand une décision doit guider les demandes futures (pourquoi on a fait ainsi, ce qu'il ne faut pas défaire).
+
+Avant de proposer une évolution, relire les lignes **Choix** pour rester cohérent avec les décisions passées.
+
 ## Design « Néon Atelier »
 
 - Mode sombre uniquement. Utiliser les variables de `:root` (`--bg`, `--s1/2/3`, `--accent` vert néon `#c8f03a`, `--a2` orange, `--a3` cyan, `--a4` violet, `--danger`…), jamais de couleurs en dur quand une variable existe.
@@ -81,7 +90,7 @@ node tests/check.js --base REF # référence de comparaison (défaut : origin/ma
 
 Il vérifie, et sort en erreur (code 1) au moindre problème :
 1. **Syntaxe** : `node --check` sur tous les `.js`.
-2. **Version** (règle 2) : même numéro dans `index.html`, `service-worker.js` et ce fichier ; numéro monté si un fichier de l'app a changé par rapport à `origin/main`.
+2. **Version** (règles 2 et 4) : même numéro dans `index.html`, `service-worker.js` et ce fichier ; numéro monté si un fichier de l'app a changé par rapport à `origin/main` ; entrée `## vN` présente dans `CHANGELOG.md`.
 3. **Catalogue** (règles 1 et 3) : chaque type a son lien `STORE` et sa fiche `SUBTYPE_INFO`, hex et finitions `f` valides, pas de doublon ni de collision de clé de stock ; **aucune entrée de `origin/main` supprimée, renommée ou modifiée**.
 4. **Navigateur** (Playwright global + Chromium de l'environnement, serveur local intégré) avec des données « existantes » dans le `localStorage` : les 3 onglets s'affichent sans débordement horizontal, bouton 🖨️ seulement dans Stock, nuancier, fiche info, association d'un code-barres (couleurs triées, bobine comptée), **stock et réglages conservés** après migration, aucune erreur console, PDF A4 du nuancier et de la liste sans élément coupé entre deux pages.
 
@@ -90,5 +99,6 @@ Captures (`stock.png`, `sim.png`, `settings.png`, `swatch.png`) et PDF (`print-s
 Quand une nouvelle fonctionnalité est ajoutée, **compléter `tests/check.js`** avec son contrôle plutôt que d'écrire un test jetable.
 
 Ensuite :
-- Monter la version (règle 2) si un fichier de l'app a changé — `tests/`, `CLAUDE.md` et `.gitignore` seuls n'en ont pas besoin.
+- Monter la version (règle 2) si un fichier de l'app a changé — `tests/`, `CLAUDE.md`, `CHANGELOG.md` et `.gitignore` seuls n'en ont pas besoin.
+- Ajouter l'entrée correspondante dans `CHANGELOG.md` (règle 4).
 - Résumer les changements en français dans la pull request, en indiquant le résultat du script.
