@@ -52,7 +52,16 @@ const DEFAULT_SETTINGS = {
     { id: 'tpu',        name: 'TPU',                price: 25, watts: 200, abrasive: false },
   ],
   printers: [ Object.assign({ id: 'h2s' }, DEFAULT_PRINTER) ],
-  sim: { mass: 32, h: 1, min: 20, filId: 'pla-basic', prnId: 'h2s' },
+  // Quincaillerie ajoutée après impression : prix indicatifs à la pièce
+  accessories: [
+    { id: 'insert-m3', name: 'Insert fileté M3',      price: 0.10 },
+    { id: 'vis-m3',    name: 'Vis M3',                price: 0.05 },
+    { id: 'ecrou-m3',  name: 'Écrou M3',              price: 0.03 },
+    { id: 'aimant-6x2', name: 'Aimant néodyme 6×2 mm', price: 0.15 },
+    { id: 'roul-608',  name: 'Roulement 608',         price: 0.60 },
+    { id: 'patin',     name: 'Patin antidérapant',    price: 0.05 },
+  ],
+  sim: { mass: 32, h: 1, min: 20, filId: 'pla-basic', prnId: 'h2s', acc: {} },
 };
 
 // Filaments ajoutés en v6 : prix public du store Bambu Lab EU (bobine à l'unité, ramené au kg),
@@ -105,6 +114,9 @@ function loadSettings() {
     if (raw && Array.isArray(raw.filaments) && Array.isArray(raw.printers)) {
       const s = Object.assign(clone(DEFAULT_SETTINGS), raw);
       s.sim = Object.assign(clone(DEFAULT_SETTINGS.sim), raw.sim || {});
+      // Accessoires (v13) : liste par défaut si absente, sans toucher à une liste déjà réglée
+      if (!Array.isArray(s.accessories)) s.accessories = clone(DEFAULT_SETTINGS.accessories);
+      if (!s.sim.acc || typeof s.sim.acc !== 'object') s.sim.acc = {};
       if (!(raw.filVersion >= 6)) {
         // Ajout des nouveaux types sans toucher aux filaments déjà réglés par l'utilisateur
         s.filaments = raw.filaments.slice();
@@ -329,7 +341,34 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#info-
 // ══════════════════════════════════════════════════════
 // VUE SIMULATEUR
 // ══════════════════════════════════════════════════════
-const BK_COLORS = ['#c8f03a', '#ff9d4d', '#3af0c8', '#ff5470', '#b06bff', '#5aa8ff', '#f0e43a'];
+const BK_COLORS = ['#c8f03a', '#ff9d4d', '#3af0c8', '#ff5470', '#b06bff', '#5aa8ff', '#f0e43a', '#d8dae6'];
+
+// Accessoires choisis pour cette impression (ceux supprimés des réglages sont ignorés)
+function simAccessories() {
+  return S.accessories
+    .map(a => ({ a, q: parseInt(S.sim.acc[a.id]) || 0 }))
+    .filter(x => x.q > 0);
+}
+function renderAccSim() {
+  const used = simAccessories();
+  const n = used.reduce((t, x) => t + x.q, 0);
+  const cost = used.reduce((t, x) => t + x.q * num(x.a.price), 0);
+  const cnt = $('#acc-count');
+  cnt.textContent = n ? `${n} pièce${n > 1 ? 's' : ''} · ${eur(cost)}` : '';
+  cnt.classList.toggle('on', n > 0);
+  $('#acc-list').innerHTML = S.accessories.length
+    ? S.accessories.map(a => {
+        const q = parseInt(S.sim.acc[a.id]) || 0;
+        return `<div class="acc-row">
+          <span class="acc-name">${esc(a.name)}</span>
+          <span class="acc-price">${eur(num(a.price))}</span>
+          <div class="stepper${q > 0 ? ' has' : ''}">
+            <button data-acc="${a.id}" data-d="-1" aria-label="Retirer un ${esc(a.name)}">−</button><span class="val">${q}</span><button data-acc="${a.id}" data-d="1" aria-label="Ajouter un ${esc(a.name)}">+</button>
+          </div>
+        </div>`;
+      }).join('') + (n ? '<button class="mini-btn acc-clear" data-act="clear-acc">Retirer tous les accessoires</button>' : '')
+    : '<div class="map-empty">Aucun accessoire : ajoute-les dans <a href="#" data-goto="settings">⚙️ Réglages</a>.</div>';
+}
 
 function renderSim() {
   if (!S.filaments.some(f => f.id === S.sim.filId)) S.sim.filId = S.filaments[0] ? S.filaments[0].id : '';
@@ -341,6 +380,7 @@ function renderSim() {
     `<option value="${f.id}"${f.id === S.sim.filId ? ' selected' : ''}>${esc(f.name)} · ${eur(f.price)}/kg</option>`).join('');
   $('#sim-prn').innerHTML = S.printers.map(p =>
     `<option value="${p.id}"${p.id === S.sim.prnId ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
+  renderAccSim();
   calc();
 }
 
@@ -365,6 +405,12 @@ function calc() {
     { ic: '🔧', label: 'Maintenance',   d: `${p.maintCost} €/an ÷ ${hpy} h`,                       v: num(p.maintCost) / hpy * dur },
     { ic: '🏭', label: 'Amortissement', d: `${p.machCost} € sur ${p.amortYears} ans`,              v: num(p.amortYears) > 0 ? num(p.machCost) / (hpy * num(p.amortYears)) * dur : 0 },
   ];
+  // Ligne « Accessoires » seulement si l'impression en utilise
+  const acc = simAccessories();
+  if (acc.length) {
+    const n = acc.reduce((t, x) => t + x.q, 0);
+    rows.push({ ic: '🔩', label: 'Accessoires', d: `${n} pièce${n > 1 ? 's' : ''}`, v: acc.reduce((t, x) => t + x.q * num(x.a.price), 0) });
+  }
   const total = rows.reduce((a, r) => a + r.v, 0);
 
   box.innerHTML = `
@@ -389,6 +435,16 @@ function calc() {
       <div class="res-total">${eur(total)}</div>
     </div>`;
 }
+
+$('#view-sim').addEventListener('click', e => {
+  const b = e.target.closest('[data-acc]');
+  if (b) {
+    const id = b.dataset.acc, q = Math.max(0, (parseInt(S.sim.acc[id]) || 0) + Number(b.dataset.d));
+    if (q) S.sim.acc[id] = q; else delete S.sim.acc[id];
+    saveSettings(); renderAccSim(); calc(); return;
+  }
+  if (e.target.closest('[data-act="clear-acc"]')) { S.sim.acc = {}; saveSettings(); renderAccSim(); calc(); }
+});
 
 $('#view-sim').addEventListener('input', e => {
   const map = { 'sim-mass': 'mass', 'sim-h': 'h', 'sim-min': 'min', 'sim-fil': 'filId', 'sim-prn': 'prnId' };
@@ -430,6 +486,16 @@ function renderFilaments() {
     </div>`).join('') || `<div class="map-empty">${q ? 'Aucun filament ne correspond.' : 'Aucun filament.'}</div>`;
 }
 
+function renderAccSettings() {
+  $('#accset-count').textContent = S.accessories.length;
+  $('#accset-list').innerHTML = S.accessories.map(a => `
+    <div class="accset-row">
+      <input class="s-in name" data-scope="acc" data-id="${a.id}" data-key="name" value="${esc(a.name)}" aria-label="Nom de l'accessoire">
+      <input class="s-in" type="number" step="0.01" min="0" inputmode="decimal" data-scope="acc" data-id="${a.id}" data-key="price" value="${a.price}" aria-label="Prix à la pièce">
+      <button class="del-btn" data-act="del-acc" data-id="${a.id}" aria-label="Supprimer">✕</button>
+    </div>`).join('') || '<div class="map-empty">Aucun accessoire.</div>';
+}
+
 function prnMeta(p) { return `${num(p.machCost)} € · ${num(p.amortYears)} ans`; }
 function renderPrinters(openId) {
   $('#prn-list').innerHTML = S.printers.map(p => `
@@ -466,6 +532,7 @@ function renderBarcodes() {
 function renderSettings(openPrnId) {
   $('#set-kwh').value = S.kwh;
   renderFilaments();
+  renderAccSettings();
   renderPrinters(openPrnId);
   renderBarcodes();
   $('#cat-date').textContent = new Date(CATALOG_UPDATED).toLocaleDateString('fr-FR');
@@ -479,6 +546,7 @@ $('#view-settings').addEventListener('input', e => {
   const val = el.type === 'number' ? num(el.value) : el.value;
   if (sc === 'kwh') S.kwh = val;
   if (sc === 'fil') { const f = S.filaments.find(x => x.id === el.dataset.id); if (f) f[el.dataset.key] = val; }
+  if (sc === 'acc') { const a = S.accessories.find(x => x.id === el.dataset.id); if (a) a[el.dataset.key] = val; }
   if (sc === 'prn') {
     const p = S.printers.find(x => x.id === el.dataset.id);
     if (p) {
@@ -510,6 +578,19 @@ $('#view-settings').addEventListener('click', e => {
       S.filaments.push({ id: nid, name: 'Nouveau filament', price: 15, watts: 220, abrasive: false });
       saveSettings(); renderFilaments();
       const inp = $(`.fil-row[data-id="${nid}"] .name`); if (inp) { inp.focus(); inp.select(); }
+      break;
+    }
+    case 'add-acc': {
+      const nid = 'a-' + uid();
+      $('#fold-accset').open = true;
+      S.accessories.push({ id: nid, name: 'Nouvel accessoire', price: 0.1 });
+      saveSettings(); renderAccSettings();
+      const inp = $(`.accset-row input[data-id="${nid}"].name`); if (inp) { inp.focus(); inp.select(); }
+      break;
+    }
+    case 'del-acc': {
+      const a = S.accessories.find(x => x.id === id);
+      if (confirm(`Supprimer « ${a.name} » ?`)) { S.accessories = S.accessories.filter(x => x.id !== id); delete S.sim.acc[id]; saveSettings(); renderAccSettings(); toast('Accessoire supprimé'); }
       break;
     }
     case 'add-prn': {

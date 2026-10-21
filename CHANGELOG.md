@@ -10,6 +10,13 @@ Chaque entrée suit le même modèle :
 
 ---
 
+## v13 — 21/10/2026 · Accessoires dans le simulateur
+- **Ajouté** : dans le simulateur, un bloc **« 🔩 Accessoires »** replié par défaut. On l'ouvre seulement quand l'impression reçoit de la quincaillerie, puis on règle le nombre de pièces avec + / −. Le bloc fermé affiche le résumé (« 3 pièces · 0,35 € »).
+- **Ajouté** : une ligne « Accessoires » dans le détail du coût de revient, affichée seulement s'il y en a. Le coût s'ajoute au coût de revient et donc aux prix de vente conseillés.
+- **Ajouté** : dans Réglages, une section **« 🔩 Accessoires »** (nom et prix à la pièce) pré-remplie avec 6 pièces courantes : insert fileté M3, vis M3, écrou M3, aimant néodyme 6×2 mm, roulement 608, patin antidérapant. Les prix sont indicatifs.
+- **Choix** : la simulation reste aussi courte qu'avant pour une impression sans quincaillerie (bloc replié, aucune ligne en plus). Les prix des accessoires se règlent une seule fois dans Réglages, pas à chaque simulation. Les accessoires suivent la même marge que le reste (× 2 / × 2,5 / × 3). Les quantités choisies restent jusqu'au bouton « Retirer tous les accessoires ».
+- **Choix** : nouvelle clé `accessories` et nouveau champ `sim.acc` dans `xtrudio_settings_v1`, ajoutés seulement s'ils manquent, sans toucher aux réglages existants.
+
 ## Outillage — 20/10/2026 (pas de nouvelle version de l'app)
 - **Ajouté** : `CHANGELOG.md` (ce fichier), reconstitué depuis l'historique Git pour les versions 1 à 12.
 - **Ajouté** : règle 4 du `CLAUDE.md`, qui demande de tenir ce journal à chaque livraison. Le script de test vérifie qu'une entrée existe pour la version en cours.

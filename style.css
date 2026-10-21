@@ -195,6 +195,20 @@ details.fold > summary::marker{content:''}
 details.fold[open] .fold-chev{transform:rotate(90deg)}
 .fold-body{padding:0 14px 14px}
 .fold-body > .search{margin-bottom:10px}
+/* Section repliable à l'intérieur d'une carte (accessoires du simulateur) */
+details.fold.sub{background:var(--s2);border:1px solid var(--border);border-radius:var(--r-md);margin-top:10px}
+details.fold.sub > .fold-sum{padding:11px 12px}
+details.fold.sub .fold-count{background:var(--s3)}
+details.fold.sub .fold-count.on{color:var(--accent);border-color:var(--accent);box-shadow:var(--glow-soft)}
+details.fold.sub .fold-body{padding:0 12px 10px}
+.acc-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--border)}
+.acc-row:last-of-type{border-bottom:none}
+.acc-name{flex:1;min-width:0;font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-price{font-family:var(--mono);font-size:.55rem;color:var(--muted2);flex:none}
+.acc-clear{width:100%;margin-top:8px}
+.acc-head,.accset-row{display:grid;grid-template-columns:1fr 84px 26px;gap:6px;align-items:center}
+.acc-head{font-family:var(--mono);font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);padding-bottom:6px;border-bottom:1px solid var(--border)}
+.accset-row{padding:6px 0;border-bottom:1px dashed var(--border)}
 .fil-head,.fil-row{display:grid;grid-template-columns:1fr 60px 56px 34px 26px;gap:6px;align-items:center}
 .fil-head{font-family:var(--mono);font-size:.5rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);padding-bottom:6px;border-bottom:1px solid var(--border)}
 .fil-row{padding:6px 0;border-bottom:1px dashed var(--border)}
