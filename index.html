@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 
@@ -112,7 +112,11 @@
         <label for="sim-prn">Imprimante</label>
         <div class="inp"><select id="sim-prn"></select></div>
       </div>
-      <p class="hint">Prix des filaments, électricité et profils d'imprimante se règlent dans <a href="#" data-goto="settings">⚙️ Réglages</a>.</p>
+      <details class="fold sub" id="fold-acc">
+        <summary class="fold-sum"><span>🔩 Accessoires</span><span class="fold-count" id="acc-count"></span><span class="fold-chev">▶</span></summary>
+        <div class="fold-body" id="acc-list"></div>
+      </details>
+      <p class="hint">Prix des filaments, accessoires, électricité et profils d'imprimante se règlent dans <a href="#" data-goto="settings">⚙️ Réglages</a>.</p>
     </section>
 
     <section class="card" id="sim-result"></section>
@@ -143,6 +147,16 @@
         <div id="fil-list"></div>
         <button class="soft-btn" data-act="add-fil">+ Ajouter un filament</button>
         <p class="hint">Prix indicatifs du store Bambu Lab EU (bobine à l'unité, ramenés au kilo, hors promotions et lots) : remplace-les par ce que tu paies réellement. Watts estimés pour la H2S + AMS selon la température du matériau. « Abr. » = filament abrasif (CF/GF), qui utilise la durée de vie de buse « abrasif » du profil d'imprimante.</p>
+      </div>
+    </details>
+
+    <details class="card fold" id="fold-accset">
+      <summary class="fold-sum"><span>🔩 Accessoires</span><span class="fold-count" id="accset-count"></span><span class="fold-chev">▶</span></summary>
+      <div class="fold-body">
+        <div class="acc-head"><span>Accessoire</span><span>€ / pièce</span><span></span></div>
+        <div id="accset-list"></div>
+        <button class="soft-btn" data-act="add-acc">+ Ajouter un accessoire</button>
+        <p class="hint">Quincaillerie ajoutée après impression (inserts, vis, aimants…). Prix indicatifs : remplace-les par ce que tu paies réellement. Dans le simulateur, ouvre « 🔩 Accessoires » seulement quand l'impression en a besoin.</p>
       </div>
     </details>
 
@@ -217,8 +231,8 @@
   </div>
 </div>
 
-<script src="catalog.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="catalog.js?v=13"></script>
+<script src="app.js?v=13"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

@@ -239,6 +239,26 @@ async function checkBrowser() {
     check(d.kwh === 0.25 && d.pla === 9.99 && d.custom && d.prn === 'Ma H2S' && d.filId === 'custom', 'réglages de l\'utilisateur conservés (kWh, prix, filament perso, imprimante, simulation)');
     info(`migration : ${d.nFil} filaments, filVersion ${d.filVersion}`);
 
+    // Accessoires du simulateur (v13) : repliés par défaut, ajout au coût, retrait
+    await page.click('.bottom-nav button[data-view=sim]'); await page.waitForTimeout(200);
+    const totalTxt = () => page.$eval('.res-total', e => e.textContent);
+    const t0 = await totalTxt();
+    const acc0 = await page.evaluate(() => ({ open: document.getElementById('fold-acc').open, n: S.accessories.length, row: !!document.querySelector('.bk-label') && [...document.querySelectorAll('.bk-label')].some(e => e.textContent.startsWith('Accessoires')) }));
+    check(!acc0.open && acc0.n > 0 && !acc0.row, `simulateur : accessoires repliés par défaut, ${acc0.n} accessoires par défaut, aucune ligne « Accessoires » sans quincaillerie`);
+    await page.click('#fold-acc summary');
+    const first = await page.$eval('[data-acc][data-d="1"]', b => b.dataset.acc);
+    await page.click(`[data-acc="${first}"][data-d="1"]`); await page.click(`[data-acc="${first}"][data-d="1"]`);
+    const acc1 = await page.evaluate(id => ({ q: JSON.parse(localStorage.getItem('xtrudio_settings_v1')).sim.acc[id], price: S.accessories.find(a => a.id === id).price, row: [...document.querySelectorAll('.bk-label')].some(e => e.textContent.startsWith('Accessoires')) }), first);
+    const t1 = await totalTxt();
+    const diff = Math.round((parseFloat(t1.replace(',', '.')) - parseFloat(t0.replace(',', '.'))) * 100) / 100;
+    check(acc1.q === 2 && acc1.row && Math.abs(diff - Math.round(2 * acc1.price * 100) / 100) <= 0.01,
+      `simulateur : 2 accessoires ajoutés au coût (+${diff.toFixed(2)} €) et enregistrés`,
+      `simulateur : accessoires mal comptés (quantité ${acc1.q}, écart ${diff} € pour 2 × ${acc1.price} €)`);
+    check(await widthOk(), 'simulateur avec accessoires ouverts : sans débordement');
+    await page.screenshot({ path: path.join(OUT, 'sim-acc.png') });
+    await page.click('[data-act="clear-acc"]');
+    check(await totalTxt() === t0, 'simulateur : « Retirer tous les accessoires » remet le coût initial');
+
     check(!errs.length, 'aucune erreur dans la console', `erreurs console : ${errs.slice(0, 5).join(' | ')}`);
 
     // PDF d'impression A4 (nuancier + liste) avec un stock réaliste
