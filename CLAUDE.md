@@ -26,6 +26,7 @@ Site 100 % statique : HTML, CSS et JavaScript « vanilla », **sans framework, s
 ### 1. Ne jamais faire perdre de données à l'utilisateur
 Ces clés `localStorage` contiennent son stock et ses réglages. **Ne jamais les renommer ni changer leur format** :
 - `q_${mat}_${sub}_${name}` (espaces remplacés par `_`) : quantité de bobines par couleur
+- `o_${mat}_${sub}_${name}` (même règle) : nombre de bobines **entamées** parmi celles de la couleur (jamais plus que le total)
 - `spool_count` : bobines réutilisables
 - `barcodeMap` : associations code-barres → `{mat, sub, name}`
 - `xtrudio_settings_v1` : réglages (kWh, filaments, imprimantes, dernière simulation)
@@ -40,7 +41,7 @@ Sinon le téléphone mélange anciens et nouveaux fichiers en cache. À chaque c
 - dans `index.html` : `style.css?v=N`, `catalog.js?v=N`, `app.js?v=N`
 - dans `service-worker.js` : `CACHE_NAME = 'xtrudio-cache-vN'` et les mêmes `?v=N` dans `APP_SHELL`
 
-Version actuelle : **13**.
+Version actuelle : **14**.
 
 ### 3. Mettre à jour le catalogue à partir des sources officielles
 - Couleurs et codes hexa : fichier officiel de Bambu Studio
@@ -76,6 +77,7 @@ Avant de proposer une évolution, relire les lignes **Choix** pour rester cohér
 - **Simulateur** : coût = filament (masse × €/kg) + électricité (watts du filament × durée × tarif kWh) + buse (coût / durée de vie, version « abrasif » si le filament est abrasif) + plateau (coût / nombre d'impressions) + filtre + maintenance + amortissement (coût machine / (heures par an × années)). Prix de vente affichés en haut (× 2, × 2,5, × 3), coût de revient total en bas.
 - **Profils d'imprimante** multiples, définis dans Réglages ; le simulateur ne demande que masse, durée, filament et imprimante.
 - **Scan** : `BarcodeDetector` + caméra arrière ; ne fonctionne que sur Chrome Android et en HTTPS (donc sur GitHub Pages, pas en local). Un code inconnu est associé une fois à une référence, puis reconnu automatiquement.
+- **Bobines entamées** : bouton ◐ sur chaque couleur (0 → 1 → … → total → 0), filtre « ◐ Entamées », compteur en haut. Retirer une bobine (− ou scan « Sortie ») retire d'abord une bobine entamée. Pas de poids ni de pourcentage.
 - **Impression** : imprime l'état du stock selon les filtres actifs, avec la date.
 
 ## Avant de proposer une modification
