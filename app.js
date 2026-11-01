@@ -136,6 +136,19 @@ function saveSettings() { lsSet(SETTINGS_KEY, JSON.stringify(S)); }
 function skey(mat, sub, name) { return `q_${mat}_${sub}_${name}`.replace(/\s+/g, '_'); }
 function getQty(mat, sub, name) { return parseInt(lsGet(skey(mat, sub, name), '0')) || 0; }
 function setQty(mat, sub, name, v) { lsSet(skey(mat, sub, name), Math.max(0, v)); }
+// Bobines entamées (v14) : clé à part, jamais plus que le total de bobines
+function okey(mat, sub, name) { return `o_${mat}_${sub}_${name}`.replace(/\s+/g, '_'); }
+function getOpen(mat, sub, name) { return Math.min(parseInt(lsGet(okey(mat, sub, name), '0')) || 0, getQty(mat, sub, name)); }
+function setOpen(mat, sub, name, v) { lsSet(okey(mat, sub, name), Math.max(0, v)); }
+// Change le total ; une bobine retirée est d'abord une bobine entamée (terminée)
+function adjustQty(mat, sub, name, delta) {
+  const q = Math.max(0, getQty(mat, sub, name) + delta);
+  let o = getOpen(mat, sub, name);
+  if (delta < 0 && o > 0) o--;
+  setQty(mat, sub, name, q);
+  setOpen(mat, sub, name, Math.min(o, q));
+  return q;
+}
 function getReuse() { return parseInt(lsGet('spool_count', '0')) || 0; }
 function setReuse(v) { lsSet('spool_count', Math.max(0, v)); }
 function getBarcodeMap() { try { return JSON.parse(lsGet('barcodeMap', '{}')) || {}; } catch (e) { return {}; } }
@@ -189,7 +202,7 @@ document.addEventListener('click', e => {
 });
 
 $('#btn-print').addEventListener('click', () => {
-  const visLbl = { all: 'toutes les références', in: 'références en stock', out: 'références manquantes' }[ui.vis];
+  const visLbl = { all: 'toutes les références', in: 'références en stock', open: 'bobines entamées', out: 'références manquantes' }[ui.vis];
   const matLbl = ui.mat === 'all' ? 'toutes matières' : ui.mat;
   const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
   $('#print-meta').textContent = `État du stock au ${date} — ${visLbl}, ${matLbl}`;
@@ -211,18 +224,20 @@ function searchOk(q, ...fields) {
   if (!q) return true;
   return fields.some(f => String(f).toLowerCase().includes(q));
 }
-function visOk(qty) {
+function visOk(qty, open) {
   if (ui.vis === 'in') return qty > 0;
+  if (ui.vis === 'open') return open > 0;
   if (ui.vis === 'out') return qty === 0;
   return true;
 }
 
 function renderStats() {
-  let refs = 0, inStock = 0, spools = 0;
+  let refs = 0, inStock = 0, spools = 0, opened = 0;
   CATALOG.forEach(m => m.subtypes.forEach(s => s.colors.forEach(c => {
     refs++; const q = getQty(m.mat, s.name, c.n);
-    if (q > 0) { inStock++; spools += q; }
+    if (q > 0) { inStock++; spools += q; opened += getOpen(m.mat, s.name, c.n); }
   })));
+  $('#stat-open').textContent = opened;
   $('#stat-refs').textContent = refs;
   $('#stat-instock').textContent = inStock;
   $('#stat-spools').textContent = spools;
@@ -235,6 +250,10 @@ function stepperHtml(key, q) {
   </div>`;
 }
 
+function openBtnHtml(key, q, o) {
+  return `<button class="open-btn${o > 0 ? ' on' : ''}" data-open="${key}"${q ? '' : ' disabled'} aria-label="Bobines entamées : ${o} sur ${q}">◐${o > 0 ? ` ${o}` : ''}</button>`;
+}
+
 function renderStockList() {
   const q = $('#search').value.trim().toLowerCase();
   let html = '';
@@ -242,8 +261,8 @@ function renderStockList() {
     if (ui.mat !== 'all' && m.mat !== ui.mat) return;
     m.subtypes.forEach((s, si) => {
       const rows = s.colors
-        .map((c, ci) => ({ c, ci, q: getQty(m.mat, s.name, c.n) }))
-        .filter(r => visOk(r.q) && searchOk(q, r.c.n, r.c.hex, s.name, m.mat));
+        .map((c, ci) => ({ c, ci, q: getQty(m.mat, s.name, c.n), o: getOpen(m.mat, s.name, c.n) }))
+        .filter(r => visOk(r.q, r.o) && searchOk(q, r.c.n, r.c.hex, s.name, m.mat));
       if (!rows.length) return;
       const owned = s.colors.filter(c => getQty(m.mat, s.name, c.n) > 0).length;
       const link = STORE[s.name] || 'https://eu.store.bambulab.com';
@@ -260,6 +279,7 @@ function renderStockList() {
           `<div class="sw${r.q > 0 ? ' has' : ''}" data-k="${mi}.${si}.${r.ci}">
             <div class="dot" style="${dotStyle(r.c.hex, r.c.f)}"></div>
             <div class="sw-name">${esc(r.c.n)}</div>
+            ${openBtnHtml(`${mi}.${si}.${r.ci}`, r.q, r.o)}
             ${stepperHtml(`${mi}.${si}.${r.ci}`, r.q)}
           </div>`).join('') + '</div>';
       } else {
@@ -267,6 +287,7 @@ function renderStockList() {
           `<div class="frow${r.q > 0 ? ' has' : ''}">
             <span class="dot" style="${dotStyle(r.c.hex, r.c.f)}"></span>
             <div class="fmeta"><span class="fname">${esc(r.c.n)}</span><span class="fhex">${r.c.hex}</span></div>
+            ${openBtnHtml(`${mi}.${si}.${r.ci}`, r.q, r.o)}
             ${stepperHtml(`${mi}.${si}.${r.ci}`, r.q)}
           </div>`).join('');
       }
@@ -292,13 +313,23 @@ function itemFromKey(key) {
 }
 function changeQty(key, delta) {
   const it = itemFromKey(key);
-  setQty(it.mat, it.sub, it.name, getQty(it.mat, it.sub, it.name) + delta);
+  adjustQty(it.mat, it.sub, it.name, delta);
+  renderStats(); renderStockList();
+}
+// Bouton ◐ : 0 → 1 → … → total → 0 bobine(s) entamée(s)
+function cycleOpen(key) {
+  const it = itemFromKey(key);
+  const q = getQty(it.mat, it.sub, it.name), o = getOpen(it.mat, it.sub, it.name);
+  if (!q) return;
+  setOpen(it.mat, it.sub, it.name, o >= q ? 0 : o + 1);
   renderStats(); renderStockList();
 }
 
 $('#view-stock').addEventListener('click', e => {
   const inf = e.target.closest('.grp-info');
   if (inf) { openInfo(inf.dataset.info); return; }
+  const ob = e.target.closest('[data-open]');
+  if (ob) { cycleOpen(ob.dataset.open); return; }
   const chip = e.target.closest('.chip');
   if (chip) { ui.mat = chip.dataset.mat; saveUi(); renderStock(); return; }
   const vb = e.target.closest('[data-vis]');
@@ -686,8 +717,7 @@ function handleCode(code) {
   else { pendingCode = code; showAssign(code); }
 }
 function applyScan({ mat, sub, name }) {
-  const next = scanMode === 'in' ? getQty(mat, sub, name) + 1 : Math.max(0, getQty(mat, sub, name) - 1);
-  setQty(mat, sub, name, next);
+  const next = adjustQty(mat, sub, name, scanMode === 'in' ? 1 : -1);
   const fl = $('#scan-flash');
   fl.classList.toggle('out', scanMode === 'out');
   fl.textContent = `${scanMode === 'in' ? '+1' : '−1'}  ${name}  →  ${next}`;

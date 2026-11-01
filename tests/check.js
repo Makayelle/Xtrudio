@@ -213,6 +213,32 @@ async function checkBrowser() {
     check(await page.evaluate(() => !document.getElementById('info-sheet').hidden), 'fiche info du type s\'ouvre');
     await page.keyboard.press('Escape');
 
+    // Bobines entamées (v14) : bouton ◐, filtre, compteur, retrait d'une bobine
+    const ok_ = await page.evaluate(() => {
+      setQty('PLA', 'PLA Matte', 'Charcoal', 2);
+      const mi = CATALOG.findIndex(m => m.mat === 'PLA'), si = CATALOG[mi].subtypes.findIndex(s => s.name === 'PLA Matte');
+      const ci = CATALOG[mi].subtypes[si].colors.findIndex(c => c.n === 'Charcoal');
+      ui.vis = 'all'; renderStock(); return `${mi}.${si}.${ci}`;
+    });
+    const okeyName = 'o_PLA_PLA_Matte_Charcoal';
+    const openState = () => page.evaluate(k => ({ o: localStorage.getItem(k), q: localStorage.getItem('q_PLA_PLA_Matte_Charcoal'), stat: document.getElementById('stat-open').textContent }), okeyName);
+    check(await page.$eval('[data-open]', b => true) && (await page.$$eval('[data-open]:disabled', b => b.length)) > 0, 'entamées : bouton ◐ sur chaque couleur, inactif sans bobine');
+    await page.click(`[data-open="${ok_}"]`);
+    let os = await openState();
+    check(os.o === '1' && os.stat === '1', 'entamées : un appui sur ◐ marque 1 bobine entamée (compteur « Entamées » = 1)', `entamées : clé ${os.o}, compteur ${os.stat}`);
+    await page.click(`[data-open="${ok_}"]`); await page.click(`[data-open="${ok_}"]`);
+    os = await openState();
+    check(os.o === '0', 'entamées : le bouton revient à 0 après le total (0 → 1 → 2 → 0)');
+    await page.click(`[data-open="${ok_}"]`);
+    await page.click('[data-vis=open]'); await page.waitForTimeout(150);
+    const onlyOpen = await page.$$eval('.frow', rows => rows.map(r => r.querySelector('.fname').textContent));
+    check(onlyOpen.length === 1 && onlyOpen[0] === 'Charcoal' && await widthOk(), 'entamées : le filtre « ◐ Entamées » ne montre que les bobines ouvertes, sans débordement');
+    await page.screenshot({ path: path.join(OUT, 'stock-open.png') });
+    await page.click(`.stepper[data-k="${ok_}"] [data-d="-1"]`);
+    os = await openState();
+    check(os.q === '1' && os.o === '0', 'entamées : retirer une bobine retire d\'abord la bobine entamée', `entamées : après retrait, total ${os.q}, entamées ${os.o}`);
+    await page.evaluate(() => { localStorage.removeItem('q_PLA_PLA_Matte_Charcoal'); localStorage.removeItem('o_PLA_PLA_Matte_Charcoal'); ui.vis = 'all'; renderStock(); });
+
     // Association d'un code inconnu : couleurs triées, quantité comptée sur la bonne couleur
     await page.evaluate(() => { openScan('in'); pendingCode = 'TEST-999'; showAssign('TEST-999'); });
     await page.selectOption('#assign-mat', '0'); await page.selectOption('#assign-sub', '0');

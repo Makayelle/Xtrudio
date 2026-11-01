@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 
@@ -48,6 +48,7 @@
       <div class="stat"><div class="stat-val" id="stat-refs">0</div><div class="stat-lbl">Références</div></div>
       <div class="stat"><div class="stat-val" id="stat-instock">0</div><div class="stat-lbl">En stock</div></div>
       <div class="stat"><div class="stat-val" id="stat-spools">0</div><div class="stat-lbl">Bobines</div></div>
+      <div class="stat"><div class="stat-val open" id="stat-open">0</div><div class="stat-lbl">Entamées</div></div>
     </div>
 
     <div class="spool-row">
@@ -74,6 +75,7 @@
         <div class="seg grow" id="seg-vis">
           <button data-vis="all" class="active">Tous</button>
           <button data-vis="in">✓ En stock</button>
+          <button data-vis="open">◐ Entamées</button>
           <button data-vis="out">○ Manquants</button>
         </div>
         <div class="seg view" id="seg-view">
@@ -231,8 +233,8 @@
   </div>
 </div>
 
-<script src="catalog.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="catalog.js?v=14"></script>
+<script src="app.js?v=14"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

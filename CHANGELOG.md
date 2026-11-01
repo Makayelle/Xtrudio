@@ -10,6 +10,14 @@ Chaque entrée suit le même modèle :
 
 ---
 
+## v14 — 01/11/2026 · Bobines entamées
+- **Ajouté** : un bouton **◐** sur chaque couleur du stock, en liste comme en nuancier. Chaque appui augmente le nombre de bobines entamées (0 → 1 → … → total → 0). Une couleur avec une bobine ouverte affiche « ◐ 1 » en cyan.
+- **Ajouté** : un filtre **« ◐ Entamées »** qui montre seulement les bobines ouvertes, donc ce qui est disponible sans nouvelle ouverture, et un compteur **« Entamées »** en haut du stock.
+- **Ajouté** : à l'impression, la mention « ◐ N ent. » à côté de la quantité.
+- **Choix** : pas de poids ni de pourcentage. Une bobine est pleine ou entamée, rien de plus. Le total de bobines ne change pas : « entamées » en est une partie.
+- **Choix** : retirer une bobine (− ou scan « Sortie ») retire d'abord une bobine entamée, car c'est celle qu'on termine en général. Les bobines réutilisables ne sont **pas** augmentées automatiquement (décision de Michou).
+- **Choix** : nouvelle clé `o_${mat}_${sub}_${name}`, à part. Les quantités `q_…` existantes ne changent pas, et au départ tout le stock est considéré comme plein.
+
 ## v13 — 21/10/2026 · Accessoires dans le simulateur
 - **Ajouté** : dans le simulateur, un bloc **« 🔩 Accessoires »** replié par défaut. On l'ouvre seulement quand l'impression reçoit de la quincaillerie, puis on règle le nombre de pièces avec + / −. Le bloc fermé affiche le résumé (« 3 pièces · 0,35 € »).
 - **Ajouté** : une ligne « Accessoires » dans le détail du coût de revient, affichée seulement s'il y en a. Le coût s'ajoute au coût de revient et donc aux prix de vente conseillés.
